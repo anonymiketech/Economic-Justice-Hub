@@ -7,6 +7,7 @@ import Home from "@/pages/Home";
 import About from "@/pages/About";
 import Pillars from "@/pages/Pillars";
 import Programs from "@/pages/Programs";
+import Research from "@/pages/Research";
 
 const queryClient = new QueryClient();
 
@@ -45,7 +46,7 @@ function Router() {
       <Route path="/about" component={About} />
       <Route path="/pillars" component={Pillars} />
       <Route path="/programs" component={Programs} />
-      <Route path="/research">{() => <ComingSoon title="Research" />}</Route>
+      <Route path="/research" component={Research} />
       <Route path="/events">{() => <ComingSoon title="Events" />}</Route>
       <Route path="/contact">{() => <ComingSoon title="Contact Us" />}</Route>
       <Route path="/profile">{() => <ComingSoon title="Profile" />}</Route>
