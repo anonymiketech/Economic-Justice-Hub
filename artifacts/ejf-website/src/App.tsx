@@ -5,6 +5,8 @@ import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import FloatingScrollButton from "@/components/FloatingScrollButton";
 import ScrollToTop from "@/components/ScrollToTop";
+import CookieBanner from "@/components/CookieBanner";
+import CookiePolicy from "@/pages/CookiePolicy";
 import Home from "@/pages/Home";
 import About from "@/pages/About";
 import Pillars from "@/pages/Pillars";
@@ -59,6 +61,7 @@ function Router() {
       <Route path="/login" component={Login} />
       <Route path="/profile" component={Profile} />
       <Route path="/donate" component={Donate} />
+      <Route path="/cookies" component={CookiePolicy} />
       <Route path="/join">{() => <ComingSoon title="Join EJF" />}</Route>
       <Route component={NotFound} />
     </Switch>
@@ -77,6 +80,7 @@ function App() {
           </main>
           <Footer />
           <FloatingScrollButton />
+          <CookieBanner />
         </WouterRouter>
       </AuthProvider>
     </QueryClientProvider>
