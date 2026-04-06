@@ -1,0 +1,31 @@
+kind = "web"
+previewPath = "/"
+title = "Economic Justice Forum"
+version = "1.0.0"
+id = "artifacts/ejf-website"
+router = "path"
+
+[[integratedSkills]]
+name = "react-vite"
+version = "1.0.0"
+
+[[services]]
+name = "web"
+paths = [ "/" ]
+localPort = 25219
+
+[services.development]
+run = "pnpm --filter @workspace/ejf-website run dev"
+
+[services.production]
+build = [ "pnpm", "--filter", "@workspace/ejf-website", "run", "build" ]
+publicDir = "artifacts/ejf-website/dist/public"
+serve = "static"
+
+[[services.production.rewrites]]
+from = "/*"
+to = "/index.html"
+
+[services.env]
+PORT = "25219"
+BASE_PATH = "/"
