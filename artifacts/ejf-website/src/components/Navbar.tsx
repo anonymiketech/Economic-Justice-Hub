@@ -99,7 +99,7 @@ export default function Navbar() {
 
                 {/* Dropdown */}
                 {profileOpen && (
-                  <div className="absolute right-0 top-full mt-2 w-52 bg-white rounded-2xl shadow-2xl border border-gray-100 overflow-hidden animate-fade-in z-50">
+                  <div className="absolute right-0 top-full mt-2 w-52 bg-white rounded-2xl shadow-2xl border border-gray-100 overflow-hidden z-50 transition-all duration-150">
                     {/* User info header */}
                     <div className="px-4 py-3 border-b border-gray-50 bg-gray-50">
                       <p className="text-xs font-bold text-[#0e1f3d] truncate">{user.name}</p>

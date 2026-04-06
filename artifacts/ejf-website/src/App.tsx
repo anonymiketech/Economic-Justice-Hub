@@ -13,6 +13,7 @@ import Events from "@/pages/Events";
 import Contact from "@/pages/Contact";
 import Login from "@/pages/Login";
 import Profile from "@/pages/Profile";
+import Donate from "@/pages/Donate";
 
 const queryClient = new QueryClient();
 
@@ -56,7 +57,7 @@ function Router() {
       <Route path="/contact" component={Contact} />
       <Route path="/login" component={Login} />
       <Route path="/profile" component={Profile} />
-      <Route path="/donate">{() => <ComingSoon title="Donate" />}</Route>
+      <Route path="/donate" component={Donate} />
       <Route path="/join">{() => <ComingSoon title="Join EJF" />}</Route>
       <Route component={NotFound} />
     </Switch>
