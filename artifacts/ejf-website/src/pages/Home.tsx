@@ -1,4 +1,5 @@
 import { useState, useRef, useEffect } from "react";
+import { Link } from "wouter";
 
 const HERO_BG = "https://images.unsplash.com/photo-1509099836639-18ba1795216d?w=1600&q=80";
 
@@ -228,6 +229,7 @@ function FeaturedProjectsSection() {
       title: "Our Trees, Our Future",
       desc: "Growing Leaders, Growing Trees — a flagship initiative linking environmental conservation, youth leadership and civic empowerment.",
       btnLabel: "Read more",
+      href: "/programs",
       bg: "from-green-900/80 to-green-700/60",
       imgUrl: "https://images.unsplash.com/photo-1416879595882-3373a0480b5b?w=600&q=80",
     },
@@ -235,6 +237,7 @@ function FeaturedProjectsSection() {
       title: "Civic Engagement on Economic & Climate Justice",
       desc: "Empowering citizens to influence policy, monitor public spending, and demand accountability in natural resource management and climate finance.",
       btnLabel: "Read more",
+      href: "/pillars",
       bg: "from-slate-900/80 to-slate-700/60",
       imgUrl: "https://images.unsplash.com/photo-1504711434969-e33886168f5c?w=600&q=80",
     },
@@ -242,6 +245,7 @@ function FeaturedProjectsSection() {
       title: "Research & Policy Advocacy",
       desc: "Developing evidence-based policy recommendations for equitable resource distribution and benefit-sharing frameworks.",
       btnLabel: "Explore Research",
+      href: "/research",
       bg: "from-blue-900/80 to-blue-700/60",
       imgUrl: "https://images.unsplash.com/photo-1551288049-bebda4e38f71?w=600&q=80",
     },
@@ -253,26 +257,27 @@ function FeaturedProjectsSection() {
         <h2 className="text-2xl font-bold text-[#0e1f3d] mb-6">Featured Projects</h2>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           {projects.map((p) => (
-            <div
+            <Link
               key={p.title}
-              className="relative rounded-xl overflow-hidden h-72 group cursor-pointer"
+              href={p.href}
+              className="relative rounded-xl overflow-hidden h-72 group cursor-pointer block"
               style={{
                 backgroundImage: `url(${p.imgUrl})`,
                 backgroundSize: "cover",
                 backgroundPosition: "center",
               }}
             >
-              <div className={`absolute inset-0 bg-gradient-to-t ${p.bg}`} />
+              <div className={`absolute inset-0 bg-gradient-to-t ${p.bg} group-hover:opacity-90 transition-opacity`} />
               <div className="absolute inset-0 p-5 flex flex-col justify-between">
                 <h3 className="text-white font-bold text-base leading-snug">{p.title}</h3>
                 <div>
                   <p className="text-white/80 text-sm mb-4 leading-relaxed">{p.desc}</p>
-                  <button className="bg-[#d4a017] hover:bg-[#b8891a] text-white font-semibold text-sm px-4 py-2 rounded transition-colors">
+                  <span className="inline-block bg-[#d4a017] group-hover:bg-[#b8891a] text-white font-semibold text-sm px-4 py-2 rounded transition-colors">
                     {p.btnLabel}
-                  </button>
+                  </span>
                 </div>
               </div>
-            </div>
+            </Link>
           ))}
         </div>
       </div>
