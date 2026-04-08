@@ -1,15 +1,25 @@
 import { useState } from "react";
 import { Link, useLocation } from "wouter";
 import { useAuth } from "@/context/AuthContext";
+import type { EJFUser } from "@/context/AuthContext";
 
 export default function Profile() {
-  const { user, logout, updateProfile } = useAuth();
+  const { user, loading, logout, updateProfile } = useAuth();
   const [, navigate] = useLocation();
 
   const [editing, setEditing] = useState(false);
   const [saved, setSaved] = useState(false);
-  const [form, setForm] = useState({ name: user?.name ?? "", email: user?.email ?? "", phone: user?.phone ?? "", organization: user?.organization ?? "" });
+  const [saving, setSaving] = useState(false);
+  const [form, setForm] = useState<Pick<EJFUser, "name" | "email" | "phone" | "organization">>({ name: user?.name ?? "", email: user?.email ?? "", phone: user?.phone ?? "", organization: user?.organization ?? "" });
   const [focused, setFocused] = useState<string | null>(null);
+
+  if (loading) {
+    return (
+      <div className="min-h-[70vh] flex items-center justify-center">
+        <div className="w-8 h-8 border-4 border-[#0e1f3d]/20 border-t-[#0e1f3d] rounded-full animate-spin" />
+      </div>
+    );
+  }
 
   if (!user) {
     return (
@@ -26,15 +36,17 @@ export default function Profile() {
     );
   }
 
-  const handleSave = () => {
-    updateProfile(form);
+  const handleSave = async () => {
+    setSaving(true);
+    await updateProfile(form);
+    setSaving(false);
     setEditing(false);
     setSaved(true);
     setTimeout(() => setSaved(false), 3000);
   };
 
-  const handleLogout = () => {
-    logout();
+  const handleLogout = async () => {
+    await logout();
     navigate("/");
   };
 
@@ -107,9 +119,10 @@ export default function Profile() {
                 </button>
                 <button
                   onClick={handleSave}
-                  className="text-xs font-bold bg-[#0e1f3d] hover:bg-[#1a3a6e] text-white px-4 py-1.5 rounded-lg transition-all hover:scale-105"
+                  disabled={saving}
+                  className="flex items-center gap-1.5 text-xs font-bold bg-[#0e1f3d] hover:bg-[#1a3a6e] disabled:bg-gray-300 text-white px-4 py-1.5 rounded-lg transition-all hover:scale-105"
                 >
-                  Save Changes
+                  {saving ? <><span className="w-3 h-3 border-2 border-white/30 border-t-white rounded-full animate-spin" /> Saving…</> : "Save Changes"}
                 </button>
               </div>
             )}
@@ -207,7 +220,13 @@ export default function Profile() {
               🚪 Sign Out
             </button>
             <button
-              onClick={() => alert("To be updated Soon")}
+              onClick={async () => {
+                const { supabase } = await import("@/lib/supabase");
+                await supabase.auth.resetPasswordForEmail(user.email, {
+                  redirectTo: `${window.location.origin}/profile`,
+                });
+                alert("Password reset email sent! Check your inbox.");
+              }}
               className="flex items-center gap-2 bg-gray-50 hover:bg-gray-100 border border-gray-200 text-gray-500 font-semibold text-sm px-5 py-2.5 rounded-xl transition-all"
             >
               🔑 Change Password

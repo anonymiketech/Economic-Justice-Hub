@@ -1,6 +1,9 @@
 import { createContext, useContext, useState, useEffect, ReactNode } from "react";
+import { supabase } from "@/lib/supabase";
+import type { User, Session } from "@supabase/supabase-js";
 
 export interface EJFUser {
+  id: string;
   name: string;
   email: string;
   phone: string;
@@ -11,72 +14,87 @@ export interface EJFUser {
 
 interface AuthContextType {
   user: EJFUser | null;
+  session: Session | null;
+  loading: boolean;
   login: (email: string, password: string) => Promise<{ ok: boolean; error?: string }>;
   register: (name: string, email: string, password: string) => Promise<{ ok: boolean; error?: string }>;
-  logout: () => void;
-  updateProfile: (data: Partial<EJFUser>) => void;
+  logout: () => Promise<void>;
+  updateProfile: (data: Partial<EJFUser>) => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | null>(null);
-
-const STORAGE_KEY = "ejf_user";
 
 function getInitials(name: string) {
   return name.split(" ").map((n) => n[0]).join("").toUpperCase().slice(0, 2);
 }
 
+function supabaseUserToEJF(supabaseUser: User): EJFUser {
+  const meta = supabaseUser.user_metadata ?? {};
+  const name = meta.full_name ?? meta.name ?? supabaseUser.email?.split("@")[0] ?? "Member";
+  return {
+    id: supabaseUser.id,
+    name,
+    email: supabaseUser.email ?? "",
+    phone: meta.phone ?? "",
+    organization: meta.organization ?? "",
+    joinedAt: supabaseUser.created_at,
+    avatar: getInitials(name),
+  };
+}
+
 export function AuthProvider({ children }: { children: ReactNode }) {
-  const [user, setUser] = useState<EJFUser | null>(() => {
-    try {
-      const raw = localStorage.getItem(STORAGE_KEY);
-      return raw ? JSON.parse(raw) : null;
-    } catch {
-      return null;
-    }
-  });
+  const [user, setUser] = useState<EJFUser | null>(null);
+  const [session, setSession] = useState<Session | null>(null);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    if (user) localStorage.setItem(STORAGE_KEY, JSON.stringify(user));
-    else localStorage.removeItem(STORAGE_KEY);
-  }, [user]);
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setSession(session);
+      setUser(session?.user ? supabaseUserToEJF(session.user) : null);
+      setLoading(false);
+    });
 
-  const login = async (email: string, _password: string): Promise<{ ok: boolean; error?: string }> => {
-    await new Promise((r) => setTimeout(r, 900));
-    if (!email.includes("@")) return { ok: false, error: "Please enter a valid email address." };
-    if (_password.length < 6) return { ok: false, error: "Password must be at least 6 characters." };
-    const name = email.split("@")[0].replace(/[._]/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());
-    const newUser: EJFUser = {
-      name,
-      email,
-      phone: "",
-      organization: "",
-      joinedAt: new Date().toISOString(),
-      avatar: getInitials(name),
-    };
-    setUser(newUser);
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      setSession(session);
+      setUser(session?.user ? supabaseUserToEJF(session.user) : null);
+      setLoading(false);
+    });
+
+    return () => subscription.unsubscribe();
+  }, []);
+
+  const login = async (email: string, password: string): Promise<{ ok: boolean; error?: string }> => {
+    const { error } = await supabase.auth.signInWithPassword({ email, password });
+    if (error) return { ok: false, error: error.message };
     return { ok: true };
   };
 
   const register = async (name: string, email: string, password: string): Promise<{ ok: boolean; error?: string }> => {
-    await new Promise((r) => setTimeout(r, 900));
-    if (!name.trim()) return { ok: false, error: "Please enter your full name." };
-    if (!email.includes("@")) return { ok: false, error: "Please enter a valid email address." };
-    if (password.length < 6) return { ok: false, error: "Password must be at least 6 characters." };
-    const newUser: EJFUser = {
-      name: name.trim(),
+    const { error } = await supabase.auth.signUp({
       email,
-      phone: "",
-      organization: "",
-      joinedAt: new Date().toISOString(),
-      avatar: getInitials(name.trim()),
-    };
-    setUser(newUser);
+      password,
+      options: {
+        data: { full_name: name },
+      },
+    });
+    if (error) return { ok: false, error: error.message };
     return { ok: true };
   };
 
-  const logout = () => setUser(null);
+  const logout = async () => {
+    await supabase.auth.signOut();
+  };
 
-  const updateProfile = (data: Partial<EJFUser>) => {
+  const updateProfile = async (data: Partial<EJFUser>) => {
+    const updates: Record<string, string> = {};
+    if (data.name) updates.full_name = data.name;
+    if (data.phone !== undefined) updates.phone = data.phone;
+    if (data.organization !== undefined) updates.organization = data.organization;
+
+    if (Object.keys(updates).length > 0) {
+      await supabase.auth.updateUser({ data: updates });
+    }
+
     setUser((prev) => {
       if (!prev) return prev;
       const updated = { ...prev, ...data };
@@ -86,7 +104,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   return (
-    <AuthContext.Provider value={{ user, login, register, logout, updateProfile }}>
+    <AuthContext.Provider value={{ user, session, loading, login, register, logout, updateProfile }}>
       {children}
     </AuthContext.Provider>
   );

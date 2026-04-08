@@ -1,6 +1,7 @@
 import { useState, FormEvent } from "react";
 import { Link, useLocation } from "wouter";
 import { useAuth } from "@/context/AuthContext";
+import { supabase } from "@/lib/supabase";
 
 export default function Login() {
   const { login, register, user } = useAuth();
@@ -12,10 +13,30 @@ export default function Login() {
   const [showPass, setShowPass] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const [success, setSuccess] = useState("");
   const [focused, setFocused] = useState<string | null>(null);
+  const [showForgot, setShowForgot] = useState(false);
+  const [resetEmail, setResetEmail] = useState("");
+  const [resetLoading, setResetLoading] = useState(false);
+  const [resetMessage, setResetMessage] = useState("");
 
   // If already logged in, bounce to profile
   if (user) { navigate("/profile"); return null; }
+
+  const handleForgotPassword = async (e: FormEvent) => {
+    e.preventDefault();
+    setResetLoading(true);
+    setResetMessage("");
+    const { error } = await supabase.auth.resetPasswordForEmail(resetEmail, {
+      redirectTo: `${window.location.origin}/profile`,
+    });
+    setResetLoading(false);
+    if (error) {
+      setResetMessage("Error: " + error.message);
+    } else {
+      setResetMessage("Check your email for a password reset link.");
+    }
+  };
 
   const inputClass = (f: string) =>
     `w-full px-4 py-3 rounded-xl border text-sm text-gray-800 bg-white outline-none transition-all duration-200 ${
@@ -25,13 +46,24 @@ export default function Login() {
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
     setError("");
+    setSuccess("");
     setLoading(true);
-    const result = tab === "login"
-      ? await login(email, password)
-      : await register(name, email, password);
-    setLoading(false);
-    if (result.ok) navigate("/profile");
-    else setError(result.error ?? (tab === "login" ? "Sign in failed. Please try again." : "Registration failed. Please try again."));
+    if (tab === "login") {
+      const result = await login(email, password);
+      setLoading(false);
+      if (result.ok) navigate("/profile");
+      else setError(result.error ?? "Sign in failed. Please try again.");
+    } else {
+      const result = await register(name, email, password);
+      setLoading(false);
+      if (result.ok) {
+        setSuccess("Account created! Please check your email to confirm your address, then sign in.");
+        setTab("login");
+        setPassword("");
+      } else {
+        setError(result.error ?? "Registration failed. Please try again.");
+      }
+    }
   };
 
   return (
@@ -73,54 +105,101 @@ export default function Login() {
           <div className="p-7">
             {tab === "login" ? (
               <>
-                <h2 className="text-xl font-bold text-[#0e1f3d] mb-1">Welcome back</h2>
-                <p className="text-gray-400 text-xs mb-6">Sign in to your EJF account</p>
+                {showForgot ? (
+                  <>
+                    <button onClick={() => { setShowForgot(false); setResetMessage(""); }} className="flex items-center gap-1 text-xs text-gray-400 hover:text-gray-600 mb-4">
+                      ← Back to Sign In
+                    </button>
+                    <h2 className="text-xl font-bold text-[#0e1f3d] mb-1">Reset Password</h2>
+                    <p className="text-gray-400 text-xs mb-6">Enter your email and we'll send you a reset link.</p>
 
-                {error && (
-                  <div className="flex items-center gap-2 bg-red-50 border border-red-200 text-red-600 text-xs rounded-xl px-4 py-3 mb-4">
-                    <span>⚠️</span> {error}
-                  </div>
-                )}
+                    {resetMessage && (
+                      <div className={`flex items-center gap-2 text-xs rounded-xl px-4 py-3 mb-4 ${resetMessage.startsWith("Error") ? "bg-red-50 border border-red-200 text-red-600" : "bg-emerald-50 border border-emerald-200 text-emerald-700"}`}>
+                        {resetMessage.startsWith("Error") ? "⚠️" : "✅"} {resetMessage}
+                      </div>
+                    )}
 
-                <form onSubmit={handleSubmit} className="space-y-4">
-                  <div>
-                    <label className="block text-xs font-bold text-[#0e1f3d] mb-1.5 uppercase tracking-wider">Email Address</label>
-                    <input
-                      type="email" required placeholder="your@email.com"
-                      value={email} onChange={(e) => setEmail(e.target.value)}
-                      onFocus={() => setFocused("email")} onBlur={() => setFocused(null)}
-                      className={inputClass("email")}
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-xs font-bold text-[#0e1f3d] mb-1.5 uppercase tracking-wider">Password</label>
-                    <div className="relative">
-                      <input
-                        type={showPass ? "text" : "password"} required placeholder="••••••••" minLength={6}
-                        value={password} onChange={(e) => setPassword(e.target.value)}
-                        onFocus={() => setFocused("pass")} onBlur={() => setFocused(null)}
-                        className={`${inputClass("pass")} pr-12`}
-                      />
-                      <button type="button" onClick={() => setShowPass((s) => !s)} className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 text-lg">
-                        {showPass ? "🙈" : "👁"}
+                    <form onSubmit={handleForgotPassword} className="space-y-4">
+                      <div>
+                        <label className="block text-xs font-bold text-[#0e1f3d] mb-1.5 uppercase tracking-wider">Email Address</label>
+                        <input
+                          type="email" required placeholder="your@email.com"
+                          value={resetEmail} onChange={(e) => setResetEmail(e.target.value)}
+                          onFocus={() => setFocused("reset-email")} onBlur={() => setFocused(null)}
+                          className={inputClass("reset-email")}
+                        />
+                      </div>
+                      <button
+                        type="submit" disabled={resetLoading}
+                        className="w-full flex items-center justify-center gap-2 bg-[#0e1f3d] hover:bg-[#1a3a6e] disabled:bg-gray-300 text-white font-bold text-sm py-3.5 rounded-xl transition-all hover:scale-[1.02] shadow-md"
+                      >
+                        {resetLoading ? <><span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" /> Sending…</> : "Send Reset Link →"}
                       </button>
+                    </form>
+                  </>
+                ) : (
+                  <>
+                    <h2 className="text-xl font-bold text-[#0e1f3d] mb-1">Welcome back</h2>
+                    <p className="text-gray-400 text-xs mb-6">Sign in to your EJF account</p>
+
+                    {success && (
+                      <div className="flex items-center gap-2 bg-emerald-50 border border-emerald-200 text-emerald-700 text-xs rounded-xl px-4 py-3 mb-4">
+                        <span>✅</span> {success}
+                      </div>
+                    )}
+
+                    {error && (
+                      <div className="flex items-center gap-2 bg-red-50 border border-red-200 text-red-600 text-xs rounded-xl px-4 py-3 mb-4">
+                        <span>⚠️</span> {error}
+                      </div>
+                    )}
+
+                    <form onSubmit={handleSubmit} className="space-y-4">
+                      <div>
+                        <label className="block text-xs font-bold text-[#0e1f3d] mb-1.5 uppercase tracking-wider">Email Address</label>
+                        <input
+                          type="email" required placeholder="your@email.com"
+                          value={email} onChange={(e) => setEmail(e.target.value)}
+                          onFocus={() => setFocused("email")} onBlur={() => setFocused(null)}
+                          className={inputClass("email")}
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-xs font-bold text-[#0e1f3d] mb-1.5 uppercase tracking-wider">Password</label>
+                        <div className="relative">
+                          <input
+                            type={showPass ? "text" : "password"} required placeholder="••••••••" minLength={6}
+                            value={password} onChange={(e) => setPassword(e.target.value)}
+                            onFocus={() => setFocused("pass")} onBlur={() => setFocused(null)}
+                            className={`${inputClass("pass")} pr-12`}
+                          />
+                          <button type="button" onClick={() => setShowPass((s) => !s)} className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 text-lg">
+                            {showPass ? "🙈" : "👁"}
+                          </button>
+                        </div>
+                        <div className="text-right mt-1">
+                          <button type="button" onClick={() => { setShowForgot(true); setResetEmail(email); setResetMessage(""); }} className="text-xs text-[#d4a017] hover:underline font-semibold">
+                            Forgot password?
+                          </button>
+                        </div>
+                      </div>
+
+                      <button
+                        type="submit" disabled={loading}
+                        className="w-full flex items-center justify-center gap-2 bg-[#0e1f3d] hover:bg-[#1a3a6e] disabled:bg-gray-300 text-white font-bold text-sm py-3.5 rounded-xl transition-all hover:scale-[1.02] shadow-md mt-2"
+                      >
+                        {loading ? <><span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" /> Signing in…</> : "Sign In →"}
+                      </button>
+                    </form>
+
+                    <div className="mt-5 text-center">
+                      <p className="text-xs text-gray-400">
+                        Don't have an account?{" "}
+                        <button onClick={() => { setTab("register"); setError(""); setSuccess(""); }} className="text-[#d4a017] font-bold hover:underline">Create one free</button>
+                      </p>
                     </div>
-                  </div>
-
-                  <button
-                    type="submit" disabled={loading}
-                    className="w-full flex items-center justify-center gap-2 bg-[#0e1f3d] hover:bg-[#1a3a6e] disabled:bg-gray-300 text-white font-bold text-sm py-3.5 rounded-xl transition-all hover:scale-[1.02] shadow-md mt-2"
-                  >
-                    {loading ? <><span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" /> Signing in…</> : "Sign In →"}
-                  </button>
-                </form>
-
-                <div className="mt-5 text-center">
-                  <p className="text-xs text-gray-400">
-                    Don't have an account?{" "}
-                    <button onClick={() => { setTab("register"); setError(""); }} className="text-[#d4a017] font-bold hover:underline">Create one free</button>
-                  </p>
-                </div>
+                  </>
+                )}
               </>
             ) : (
               <>
@@ -178,7 +257,7 @@ export default function Login() {
                 <div className="mt-5 text-center">
                   <p className="text-xs text-gray-400">
                     Already have an account?{" "}
-                    <button onClick={() => { setTab("login"); setError(""); }} className="text-[#d4a017] font-bold hover:underline">Sign in</button>
+                    <button onClick={() => { setTab("login"); setError(""); setSuccess(""); }} className="text-[#d4a017] font-bold hover:underline">Sign in</button>
                   </p>
                 </div>
               </>

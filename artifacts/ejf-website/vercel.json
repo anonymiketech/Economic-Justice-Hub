@@ -1,0 +1,8 @@
+{
+  "rewrites": [
+    { "source": "/(.*)", "destination": "/index.html" }
+  ],
+  "buildCommand": "pnpm install && pnpm --filter @workspace/ejf-website run build",
+  "outputDirectory": "artifacts/ejf-website/dist/public",
+  "installCommand": "pnpm install"
+}

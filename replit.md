@@ -11,10 +11,24 @@ pnpm workspace monorepo using TypeScript. Each package manages its own dependenc
 - **Package manager**: pnpm
 - **TypeScript version**: 5.9
 - **API framework**: Express 5
-- **Database**: PostgreSQL + Drizzle ORM
+- **Database**: PostgreSQL + Drizzle ORM (local), Supabase (production)
+- **Authentication**: Supabase Auth (`@supabase/supabase-js`) — email/password sign-up & sign-in
 - **Validation**: Zod (`zod/v4`), `drizzle-zod`
 - **API codegen**: Orval (from OpenAPI spec)
 - **Build**: esbuild (CJS bundle)
+
+## Environment Variables
+
+- `VITE_SUPABASE_URL` — Supabase project URL (`https://djiscfadlchvrskzsfax.supabase.co`)
+- `VITE_SUPABASE_ANON_KEY` — Supabase public anon key
+
+## Vercel Deployment
+
+`vercel.json` is at the repo root. Build command: `pnpm install && pnpm --filter @workspace/ejf-website run build`. Output: `artifacts/ejf-website/dist/public`.
+
+**Required Vercel environment variables:**
+- `VITE_SUPABASE_URL`
+- `VITE_SUPABASE_ANON_KEY`
 
 ## Key Commands
 
