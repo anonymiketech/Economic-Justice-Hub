@@ -1,4 +1,5 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
+import { adminQueries, DBProgram } from "@/lib/adminQueries";
 
 /* ─────────────────────────────────────────────
    INTERSECTION OBSERVER HOOK
@@ -525,6 +526,88 @@ function HelpfulResources() {
 }
 
 /* ─────────────────────────────────────────────
+   LIVE PROGRAMS (from Admin Panel)
+───────────────────────────────────────────── */
+const categoryColors: Record<string, string> = {
+  Environmental: "bg-emerald-50 text-emerald-700",
+  Economic: "bg-blue-50 text-blue-700",
+  Digital: "bg-violet-50 text-violet-700",
+  Social: "bg-pink-50 text-pink-700",
+  Youth: "bg-orange-50 text-orange-700",
+  Women: "bg-rose-50 text-rose-700",
+};
+
+function LivePrograms() {
+  const [programs, setPrograms] = useState<DBProgram[]>([]);
+  const [loading, setLoading] = useState(true);
+  const { ref, inView } = useInView();
+
+  const fetchPrograms = useCallback(async () => {
+    setLoading(true);
+    const { data } = await adminQueries.programs.listActive();
+    setPrograms(data ?? []);
+    setLoading(false);
+  }, []);
+
+  useEffect(() => { fetchPrograms(); }, [fetchPrograms]);
+
+  if (!loading && programs.length === 0) return null;
+
+  return (
+    <ProgramSection bg="bg-gray-50">
+      <div className="max-w-5xl mx-auto">
+        <div ref={ref} className={`mb-8 transition-all duration-700 ${inView ? "opacity-100 translate-y-0" : "opacity-0 translate-y-6"}`}>
+          <div className="flex items-center gap-3 mb-2">
+            <h2 className="text-2xl md:text-3xl font-bold text-[#0e1f3d]">Featured Programs</h2>
+            <span className="text-xs text-[#d4a017] font-bold bg-[#d4a017]/10 px-2 py-0.5 rounded-full">● Live</span>
+          </div>
+          <div className="w-12 h-0.5 bg-[#d4a017] mb-2" />
+          <p className="text-gray-500 text-sm">Active programs and initiatives, updated by the EJF team.</p>
+        </div>
+
+        {loading ? (
+          <div className="flex justify-center py-12">
+            <div className="w-8 h-8 border-4 border-[#0e1f3d]/20 border-t-[#0e1f3d] rounded-full animate-spin" />
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-5">
+            {programs.map((prog) => (
+              <div
+                key={prog.id}
+                className="group bg-white border border-gray-100 rounded-2xl overflow-hidden shadow-sm hover:shadow-md hover:-translate-y-1 transition-all duration-300"
+              >
+                {prog.image_url ? (
+                  <div className="h-40 overflow-hidden bg-[#0e1f3d]/5">
+                    <img src={prog.image_url} alt={prog.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
+                  </div>
+                ) : (
+                  <div className="h-20 bg-gradient-to-br from-[#0e1f3d] to-[#1a3a6e] flex items-center justify-center">
+                    <span className="text-3xl">🌱</span>
+                  </div>
+                )}
+                <div className="p-4">
+                  <div className="flex items-center gap-2 mb-2">
+                    <span className={`text-xs font-bold px-2 py-0.5 rounded-full ${categoryColors[prog.category] ?? "bg-gray-100 text-gray-600"}`}>
+                      {prog.category}
+                    </span>
+                  </div>
+                  <h3 className="font-bold text-[#0e1f3d] text-sm mb-2 leading-snug group-hover:text-[#d4a017] transition-colors">
+                    {prog.title}
+                  </h3>
+                  {prog.description && (
+                    <p className="text-gray-500 text-xs leading-relaxed line-clamp-3">{prog.description}</p>
+                  )}
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+    </ProgramSection>
+  );
+}
+
+/* ─────────────────────────────────────────────
    CTA
 ───────────────────────────────────────────── */
 function ProgramsCta() {
@@ -555,6 +638,7 @@ export default function Programs() {
   return (
     <>
       <ProgramsHero />
+      <LivePrograms />
       <OurTreesProgram />
       <CivicEngagementProgram />
       <DigitalJusticeProgram />
