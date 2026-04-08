@@ -7,6 +7,8 @@ import Footer from "@/components/Footer";
 import FloatingScrollButton from "@/components/FloatingScrollButton";
 import ScrollToTop from "@/components/ScrollToTop";
 import CookieBanner from "@/components/CookieBanner";
+import WelcomeAnimation from "@/components/WelcomeAnimation";
+import ProtectedRoute from "@/components/ProtectedRoute";
 import CookiePolicy from "@/pages/CookiePolicy";
 import Home from "@/pages/Home";
 import About from "@/pages/About";
@@ -60,8 +62,12 @@ function Router() {
       <Route path="/events" component={Events} />
       <Route path="/contact" component={Contact} />
       <Route path="/login" component={Login} />
-      <Route path="/profile" component={Profile} />
-      <Route path="/donate" component={Donate} />
+      <Route path="/profile">
+        {() => <ProtectedRoute><Profile /></ProtectedRoute>}
+      </Route>
+      <Route path="/donate">
+        {() => <ProtectedRoute><Donate /></ProtectedRoute>}
+      </Route>
       <Route path="/cookies" component={CookiePolicy} />
       <Route path="/join">{() => <ComingSoon title="Join EJF" />}</Route>
       <Route component={NotFound} />
@@ -74,6 +80,7 @@ function App() {
     <QueryClientProvider client={queryClient}>
       <AuthProvider>
         <WouterRouter base={import.meta.env.BASE_URL.replace(/\/$/, "")}>
+          <WelcomeAnimation />
           <ScrollToTop />
           {!isSupabaseConfigured && (
             <div style={{ background: "#fef3c7", borderBottom: "1px solid #f59e0b", padding: "10px 20px", textAlign: "center", fontSize: 13, color: "#92400e" }}>
