@@ -387,6 +387,7 @@ function AIChatSection() {
   ]);
   const [input, setInput] = useState("");
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const isFirstRender = useRef(true);
 
   const quickReplies = ["What is EJF?", "Become a Member", "Membership Benefits", "Volunteer Opportunities"];
 
@@ -415,6 +416,10 @@ function AIChatSection() {
   };
 
   useEffect(() => {
+    if (isFirstRender.current) {
+      isFirstRender.current = false;
+      return;
+    }
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
 
