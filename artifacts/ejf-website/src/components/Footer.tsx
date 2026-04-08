@@ -215,6 +215,17 @@ export default function Footer() {
                 economicjusticeforum.org
               </a>
               <a
+                href="mailto:info@economicjusticeforum.org"
+                className="flex items-center gap-3 text-sm text-white/60 hover:text-[#d4a017] transition-colors group"
+              >
+                <div className="w-8 h-8 rounded-full bg-white/5 group-hover:bg-[#d4a017]/20 flex items-center justify-center flex-shrink-0 transition-colors">
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                  </svg>
+                </div>
+                info@economicjusticeforum.org
+              </a>
+              <a
                 href="tel:+254741357830"
                 className="flex items-center gap-3 text-sm text-white/60 hover:text-[#d4a017] transition-colors group"
               >
