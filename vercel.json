@@ -1,12 +1,9 @@
 {
   "buildCommand": "pnpm install && pnpm --filter @workspace/ejf-website run build",
   "outputDirectory": "artifacts/ejf-website/dist/public",
-  "installCommand": "pnpm install",
+  "installCommand": "pnpm install --frozen-lockfile=false",
   "framework": null,
   "rewrites": [
     { "source": "/(.*)", "destination": "/index.html" }
-  ],
-  "env": {
-    "NODE_VERSION": "20"
-  }
+  ]
 }

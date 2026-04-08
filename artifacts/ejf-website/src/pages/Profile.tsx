@@ -2,6 +2,7 @@ import { useState } from "react";
 import { Link, useLocation } from "wouter";
 import { useAuth } from "@/context/AuthContext";
 import type { EJFUser } from "@/context/AuthContext";
+import { supabase } from "@/lib/supabase";
 
 export default function Profile() {
   const { user, loading, logout, updateProfile } = useAuth();
@@ -221,7 +222,6 @@ export default function Profile() {
             </button>
             <button
               onClick={async () => {
-                const { supabase } = await import("@/lib/supabase");
                 await supabase.auth.resetPasswordForEmail(user.email, {
                   redirectTo: `${window.location.origin}/profile`,
                 });
