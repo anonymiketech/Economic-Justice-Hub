@@ -1,7 +1,9 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useAuth } from "@/context/AuthContext";
 import { useLocation } from "wouter";
 import { adminQueries, DBEvent, DBProgram, DBPublication, DBContact, DBDonation, DBNewsletter, DBUser } from "@/lib/adminQueries";
+
+const SESSION_KEY = "ejf_admin_verified";
 
 /* ─── helpers ─── */
 function fmt(dt: string) {
@@ -532,6 +534,158 @@ const TABS: { key: Tab; label: string; emoji: string }[] = [
   { key: "users", label: "Users", emoji: "👥" },
 ];
 
+/* ═══════════════════════════════════════════
+   ADMIN SECRET GATE
+══════════════════════════════════════════ */
+function AdminSecretGate({ email, children }: { email: string; children: React.ReactNode }) {
+  const alreadyVerified = sessionStorage.getItem(SESSION_KEY) === email;
+  const [verified, setVerified] = useState(alreadyVerified);
+  const [code, setCode] = useState("");
+  const [showCode, setShowCode] = useState(false);
+  const [checking, setChecking] = useState(false);
+  const [error, setError] = useState("");
+  const [attempts, setAttempts] = useState(0);
+  const [lockedUntil, setLockedUntil] = useState<number | null>(null);
+  const [countdown, setCountdown] = useState(0);
+  const inputRef = useRef<HTMLInputElement>(null);
+
+  const MAX_ATTEMPTS = 5;
+  const LOCKOUT_SECONDS = 60;
+
+  useEffect(() => {
+    if (lockedUntil === null) return;
+    const tick = setInterval(() => {
+      const remaining = Math.ceil((lockedUntil - Date.now()) / 1000);
+      if (remaining <= 0) { setLockedUntil(null); setAttempts(0); setCountdown(0); clearInterval(tick); }
+      else setCountdown(remaining);
+    }, 500);
+    return () => clearInterval(tick);
+  }, [lockedUntil]);
+
+  if (verified) return <>{children}</>;
+
+  const isLocked = lockedUntil !== null && Date.now() < lockedUntil;
+
+  const handleVerify = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!code.trim() || isLocked) return;
+    setChecking(true);
+    setError("");
+    try {
+      const { data, error: rpcError } = await adminQueries.admin.verifySecret(email, code.trim());
+      if (rpcError) throw new Error(rpcError.message);
+      if (data === true) {
+        sessionStorage.setItem(SESSION_KEY, email);
+        setVerified(true);
+      } else {
+        const next = attempts + 1;
+        setAttempts(next);
+        if (next >= MAX_ATTEMPTS) {
+          setLockedUntil(Date.now() + LOCKOUT_SECONDS * 1000);
+          setError(`Too many attempts. Locked for ${LOCKOUT_SECONDS} seconds.`);
+        } else {
+          setError(`Incorrect code. ${MAX_ATTEMPTS - next} attempt${MAX_ATTEMPTS - next === 1 ? "" : "s"} remaining.`);
+        }
+        setCode("");
+        setTimeout(() => inputRef.current?.focus(), 50);
+      }
+    } catch {
+      setError("Verification failed. Please try again.");
+    }
+    setChecking(false);
+  };
+
+  return (
+    <div className="min-h-screen bg-gradient-to-br from-[#0e1f3d] via-[#0e1f3d] to-[#1a3a6e] flex items-center justify-center px-4">
+      <div className="absolute inset-0 opacity-[0.03] pointer-events-none" style={{ backgroundImage: "radial-gradient(circle, #fff 1px, transparent 1px)", backgroundSize: "28px 28px" }} />
+      <div className="relative w-full max-w-sm">
+        <div className="flex flex-col items-center mb-8">
+          <div className="w-16 h-16 bg-[#d4a017] rounded-2xl flex items-center justify-center shadow-2xl mb-4">
+            <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+            </svg>
+          </div>
+          <h1 className="text-white font-bold text-2xl text-center">Admin Verification</h1>
+          <p className="text-white/50 text-sm mt-1 text-center">Enter your secret admin code to continue</p>
+        </div>
+
+        <div className="bg-white rounded-3xl shadow-2xl p-8">
+          <div className="mb-5 p-3 bg-[#0e1f3d]/5 rounded-xl flex items-center gap-3">
+            <div className="w-8 h-8 bg-[#0e1f3d] rounded-full flex items-center justify-center text-white text-xs font-bold flex-shrink-0">
+              {email.slice(0, 1).toUpperCase()}
+            </div>
+            <div>
+              <p className="text-xs text-gray-400 leading-none mb-0.5">Signed in as</p>
+              <p className="text-[#0e1f3d] font-semibold text-sm leading-none truncate max-w-[200px]">{email}</p>
+            </div>
+          </div>
+
+          <form onSubmit={handleVerify} className="space-y-4">
+            {error && (
+              <div className="flex items-start gap-2 bg-red-50 border border-red-100 text-red-700 text-xs rounded-xl px-3 py-2.5">
+                <span className="mt-0.5 flex-shrink-0">⚠️</span>
+                <span>{error}</span>
+              </div>
+            )}
+            {isLocked && (
+              <div className="flex items-center gap-2 bg-amber-50 border border-amber-100 text-amber-700 text-xs rounded-xl px-3 py-2.5">
+                <span>🔒</span>
+                <span>Try again in <strong>{countdown}s</strong></span>
+              </div>
+            )}
+
+            <div>
+              <label className="block text-xs font-bold text-[#0e1f3d] mb-1.5 uppercase tracking-wide">Secret Admin Code</label>
+              <div className="relative">
+                <input
+                  ref={inputRef}
+                  type={showCode ? "text" : "password"}
+                  value={code}
+                  onChange={e => setCode(e.target.value)}
+                  placeholder="Enter your admin code"
+                  disabled={isLocked || checking}
+                  autoFocus
+                  className="w-full border border-gray-200 rounded-xl px-4 py-3 pr-11 text-sm focus:outline-none focus:ring-2 focus:ring-[#0e1f3d]/20 focus:border-[#0e1f3d] disabled:bg-gray-50 disabled:text-gray-400 transition-all tracking-widest font-mono"
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowCode(v => !v)}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors"
+                  tabIndex={-1}
+                >
+                  {showCode ? (
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21" /></svg>
+                  ) : (
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" /></svg>
+                  )}
+                </button>
+              </div>
+            </div>
+
+            <button
+              type="submit"
+              disabled={!code.trim() || isLocked || checking}
+              className="w-full bg-[#0e1f3d] hover:bg-[#1a3a6e] disabled:bg-gray-200 disabled:text-gray-400 text-white font-bold py-3 rounded-xl text-sm transition-all duration-200 flex items-center justify-center gap-2 shadow-lg shadow-[#0e1f3d]/20"
+            >
+              {checking ? (
+                <><div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" /> Verifying…</>
+              ) : "Access Admin Panel →"}
+            </button>
+          </form>
+
+          <div className="mt-5 pt-4 border-t border-gray-100 text-center">
+            <a href="/" className="text-gray-400 text-xs hover:text-gray-600 transition-colors">← Back to site</a>
+          </div>
+        </div>
+
+        <p className="text-center text-white/30 text-xs mt-6">
+          Economic Justice Forum &bull; Secure Admin Area
+        </p>
+      </div>
+    </div>
+  );
+}
+
 export default function Admin() {
   const { user, loading } = useAuth();
   const [, navigate] = useLocation();
@@ -557,6 +711,7 @@ export default function Admin() {
   );
 
   return (
+    <AdminSecretGate email={user.email!}>
     <div className="min-h-screen bg-gray-50">
       {/* Header */}
       <div className="bg-[#0e1f3d] text-white px-6 py-4 flex items-center justify-between shadow-lg">
@@ -616,5 +771,6 @@ export default function Admin() {
         </main>
       </div>
     </div>
+    </AdminSecretGate>
   );
 }

@@ -118,4 +118,8 @@ export const adminQueries = {
     toggleAdmin: (id: string, is_admin: boolean) => supabase.from("users").update({ is_admin }).eq("id", id),
     getByEmail: (email: string) => supabase.from("users").select("is_admin").eq("email", email).single(),
   },
+  admin: {
+    verifySecret: (userEmail: string, providedSecret: string) =>
+      supabase.rpc("verify_admin_secret", { user_email: userEmail, provided_secret: providedSecret }),
+  },
 };
