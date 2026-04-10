@@ -71,7 +71,17 @@ const coFounders = [
 /* ─────────────────────────────────────────────
    TEAM CARD – Desktop hover / Mobile tap
 ───────────────────────────────────────────── */
-function TeamCard({ person, isPresident = false }: { person: typeof president; isPresident?: boolean }) {
+type TeamPerson = {
+  name: string;
+  role: string;
+  initials: string;
+  photo: string | null;
+  photoPos: string;
+  color: string;
+  bio: string;
+};
+
+function TeamCard({ person, isPresident = false }: { person: TeamPerson; isPresident?: boolean }) {
   const [flipped, setFlipped] = useState(false);
 
   return (
@@ -82,11 +92,16 @@ function TeamCard({ person, isPresident = false }: { person: typeof president; i
           className="relative rounded-2xl overflow-hidden shadow-xl cursor-pointer"
           onClick={() => setFlipped((f) => !f)}
         >
-          {/* Avatar face */}
-          <div className={`bg-gradient-to-br ${person.color} h-56 flex flex-col items-center justify-center gap-3 p-6`}>
-            <div className="w-20 h-20 rounded-full bg-white/20 border-4 border-white/40 flex items-center justify-center text-white font-bold text-2xl shadow-lg">
-              {person.initials}
-            </div>
+          <div className={`bg-gradient-to-br ${person.color} h-64 flex flex-col items-center justify-center gap-3 p-6 relative`}>
+            {person.photo ? (
+              <div className="w-24 h-24 rounded-full overflow-hidden border-4 border-[#d4a017]/70 shadow-xl">
+                <img src={person.photo} alt={person.name} className={`w-full h-full object-cover ${person.photoPos}`} loading="lazy" />
+              </div>
+            ) : (
+              <div className="w-20 h-20 rounded-full bg-white/20 border-4 border-white/40 flex items-center justify-center text-white font-bold text-2xl shadow-lg">
+                {person.initials}
+              </div>
+            )}
             <div className="text-center">
               <div className="text-white font-bold text-base leading-tight">{person.name}</div>
               <div className="text-[#d4a017] text-xs mt-1 font-medium">{person.role}</div>
@@ -97,10 +112,8 @@ function TeamCard({ person, isPresident = false }: { person: typeof president; i
               </svg>
             </div>
           </div>
-
-          {/* Info panel – slides down */}
           <div
-            className={`overflow-hidden transition-all duration-500 ease-in-out bg-[#0e1f3d]`}
+            className="overflow-hidden transition-all duration-500 ease-in-out bg-[#0e1f3d]"
             style={{ maxHeight: flipped ? "500px" : "0px" }}
           >
             <div className="p-5">
@@ -124,14 +137,20 @@ function TeamCard({ person, isPresident = false }: { person: typeof president; i
         >
           {/* Front */}
           <div
-            className={`absolute inset-0 rounded-2xl bg-gradient-to-br ${person.color} flex flex-col items-center justify-center gap-4 p-6 shadow-xl`}
+            className={`absolute inset-0 rounded-2xl bg-gradient-to-br ${person.color} flex flex-col items-center justify-center gap-4 p-6 shadow-xl overflow-hidden`}
             style={{ backfaceVisibility: "hidden" }}
           >
-            <div className="w-24 h-24 rounded-full bg-white/20 border-4 border-white/40 flex items-center justify-center text-white font-bold text-3xl shadow-lg">
-              {person.initials}
-            </div>
+            {person.photo ? (
+              <div className="w-28 h-28 rounded-full overflow-hidden border-4 border-[#d4a017]/70 shadow-2xl">
+                <img src={person.photo} alt={person.name} className={`w-full h-full object-cover ${person.photoPos}`} loading="lazy" />
+              </div>
+            ) : (
+              <div className="w-24 h-24 rounded-full bg-white/20 border-4 border-white/40 flex items-center justify-center text-white font-bold text-3xl shadow-lg">
+                {person.initials}
+              </div>
+            )}
             <div className="text-center">
-              <div className="text-white font-bold text-lg leading-tight">{person.name}</div>
+              <div className="text-white font-bold text-base leading-tight">{person.name}</div>
               <div className="text-[#d4a017] text-sm mt-1 font-medium">{person.role}</div>
             </div>
             <div className="absolute bottom-4 text-white/40 text-xs">Hover to learn more</div>
@@ -374,12 +393,19 @@ function FoundingTeam() {
 
           {/* Desktop featured */}
           <div className="hidden md:flex bg-gradient-to-r from-[#0e1f3d] to-[#1a3a6e] rounded-2xl overflow-hidden shadow-2xl">
-            <div className="w-64 flex-shrink-0 bg-gradient-to-br from-[#0e1f3d] to-[#0a1628] flex flex-col items-center justify-center p-8 border-r border-white/10">
-              <div className="w-28 h-28 rounded-full bg-white/20 border-4 border-[#d4a017]/60 flex items-center justify-center text-white font-bold text-4xl shadow-xl mb-4">
-                CM
+            <div className="w-72 flex-shrink-0 bg-gradient-to-br from-[#0a1628] to-[#0e1f3d] flex flex-col items-center justify-center p-8 border-r border-white/10 gap-4">
+              <div className="w-36 h-36 rounded-full overflow-hidden border-4 border-[#d4a017] shadow-2xl">
+                <img
+                  src={president.photo}
+                  alt={president.name}
+                  className={`w-full h-full object-cover ${president.photoPos}`}
+                  loading="eager"
+                />
               </div>
-              <div className="text-white font-bold text-center text-lg leading-tight mb-1">{president.name}</div>
-              <div className="text-[#d4a017] text-xs font-semibold text-center">{president.role}</div>
+              <div className="text-center">
+                <div className="text-white font-bold text-lg leading-tight mb-1">{president.name}</div>
+                <div className="text-[#d4a017] text-xs font-semibold">{president.role}</div>
+              </div>
             </div>
             <div className="flex-1 p-8 flex items-center">
               <div>
@@ -401,6 +427,28 @@ function FoundingTeam() {
             {coFounders.map((person) => (
               <TeamCard key={person.name} person={person} />
             ))}
+          </div>
+        </div>
+
+        {/* Team Group Photo */}
+        <div className="mt-14">
+          <div className="flex items-center gap-2 mb-6">
+            <span className="w-6 h-0.5 bg-[#d4a017]" />
+            <span className="text-[#d4a017] text-xs font-bold uppercase tracking-wider">The EJF Team</span>
+          </div>
+          <div className="relative rounded-2xl overflow-hidden shadow-2xl group">
+            <img
+              src={imgTeam}
+              alt="EJF Founding Team"
+              className="w-full object-cover object-top transition-transform duration-700 group-hover:scale-[1.02]"
+              style={{ maxHeight: 480 }}
+              loading="lazy"
+            />
+            <div className="absolute inset-0 bg-gradient-to-t from-[#0a1628]/80 via-transparent to-transparent" />
+            <div className="absolute bottom-0 left-0 right-0 p-6">
+              <p className="text-white font-bold text-lg leading-tight">Our People</p>
+              <p className="text-white/60 text-sm mt-1">The growing EJF community — members, volunteers, and advocates working together for economic justice across Kenya.</p>
+            </div>
           </div>
         </div>
       </div>
