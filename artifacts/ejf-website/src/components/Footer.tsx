@@ -26,13 +26,33 @@ const quickTags = ["Annual Report", "Newsletter", "Careers", "FAQs"];
 export default function Footer() {
   const [email, setEmail] = useState("");
   const [subscribed, setSubscribed] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [subError, setSubError] = useState("");
 
-  const handleSubscribe = (e: React.FormEvent) => {
+  const handleSubscribe = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (email.trim()) {
-      setSubscribed(true);
-      setEmail("");
+    const trimmed = email.trim();
+    if (!trimmed || !trimmed.includes("@")) return;
+    setLoading(true);
+    setSubError("");
+    try {
+      const base = import.meta.env.BASE_URL?.replace(/\/$/, "") ?? "";
+      const res = await fetch(`${base}/api/newsletter`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email: trimmed }),
+      });
+      if (res.ok) {
+        setSubscribed(true);
+        setEmail("");
+      } else {
+        const data = await res.json().catch(() => ({}));
+        setSubError(data.error || "Something went wrong. Please try again.");
+      }
+    } catch {
+      setSubError("Could not connect. Please try again.");
     }
+    setLoading(false);
   };
 
   return (
@@ -177,25 +197,29 @@ export default function Footer() {
               </p>
               {subscribed ? (
                 <div className="bg-white/20 rounded-lg px-4 py-3 text-white text-sm font-medium text-center">
-                  Thanks for subscribing!
+                  ✓ You're subscribed! Thank you.
                 </div>
               ) : (
-                <form onSubmit={handleSubscribe} className="flex">
-                  <input
-                    type="email"
-                    placeholder="Email address"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    required
-                    className="flex-1 min-w-0 px-3 py-2.5 text-sm text-gray-900 bg-white rounded-l-lg focus:outline-none focus:ring-2 focus:ring-white/50"
-                  />
-                  <button
-                    type="submit"
-                    className="bg-[#0e1f3d] hover:bg-[#0a1628] text-white text-sm font-bold px-4 py-2.5 rounded-r-lg transition-colors whitespace-nowrap"
-                  >
-                    Subscribe
-                  </button>
-                </form>
+                <>
+                  <form onSubmit={handleSubscribe} className="flex">
+                    <input
+                      type="email"
+                      placeholder="Email address"
+                      value={email}
+                      onChange={(e) => { setEmail(e.target.value); setSubError(""); }}
+                      required
+                      className="flex-1 min-w-0 px-3 py-2.5 text-sm text-gray-900 bg-white rounded-l-lg focus:outline-none focus:ring-2 focus:ring-white/50"
+                    />
+                    <button
+                      type="submit"
+                      disabled={loading}
+                      className="bg-[#0e1f3d] hover:bg-[#0a1628] disabled:bg-gray-600 text-white text-sm font-bold px-4 py-2.5 rounded-r-lg transition-colors whitespace-nowrap"
+                    >
+                      {loading ? "…" : "Subscribe"}
+                    </button>
+                  </form>
+                  {subError && <p className="text-white/80 text-xs mt-1.5">{subError}</p>}
+                </>
               )}
             </div>
 
