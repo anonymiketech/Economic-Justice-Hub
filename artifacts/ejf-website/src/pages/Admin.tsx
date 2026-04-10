@@ -1,9 +1,8 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect } from "react";
 import { useAuth } from "@/context/AuthContext";
 import { useLocation } from "wouter";
 import { adminQueries, DBEvent, DBProgram, DBPublication, DBContact, DBDonation, DBNewsletter, DBUser } from "@/lib/adminQueries";
-
-const SESSION_KEY = "ejf_admin_verified";
+import "./admin.css";
 
 /* ─── helpers ─── */
 function fmt(dt: string) {
@@ -11,23 +10,36 @@ function fmt(dt: string) {
   return new Date(dt).toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" });
 }
 function Badge({ label, color }: { label: string; color: string }) {
-  return <span className={`inline-block px-2 py-0.5 rounded-full text-xs font-bold ${color}`}>{label}</span>;
+  return <span className={`inline-block px-2.5 py-0.5 rounded-full text-xs font-semibold tracking-wide ${color}`}>{label}</span>;
 }
 function Spinner() {
-  return <div className="flex justify-center py-12"><div className="w-8 h-8 border-4 border-[#0e1f3d]/20 border-t-[#0e1f3d] rounded-full animate-spin" /></div>;
+  return (
+    <div className="flex flex-col items-center justify-center py-16 gap-3">
+      <div className="relative w-10 h-10">
+        <div className="absolute inset-0 rounded-full border-4 border-[#0e1f3d]/10" />
+        <div className="absolute inset-0 rounded-full border-4 border-transparent border-t-[#d4a017] animate-spin" />
+      </div>
+      <p className="text-xs text-gray-400 tracking-widest uppercase">Loading</p>
+    </div>
+  );
 }
 function EmptyState({ msg }: { msg: string }) {
-  return <div className="text-center py-12 text-gray-400 text-sm">{msg}</div>;
+  return (
+    <div className="flex flex-col items-center justify-center py-16 gap-3">
+      <div className="w-14 h-14 rounded-2xl bg-gray-100 flex items-center justify-center text-2xl">📭</div>
+      <p className="text-sm text-gray-400">{msg}</p>
+    </div>
+  );
 }
 
 /* ─── MODAL ─── */
 function Modal({ title, onClose, children }: { title: string; onClose: () => void; children: React.ReactNode }) {
   return (
-    <div className="fixed inset-0 z-50 bg-black/50 flex items-center justify-center p-4">
-      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-lg max-h-[90vh] overflow-y-auto">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4" style={{ backdropFilter: "blur(4px)", backgroundColor: "rgba(14,31,61,0.6)" }}>
+      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-lg max-h-[90vh] overflow-y-auto animate-scale-in">
         <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100">
           <h3 className="font-bold text-[#0e1f3d] text-base">{title}</h3>
-          <button onClick={onClose} className="text-gray-400 hover:text-gray-600 text-xl font-bold leading-none">×</button>
+          <button onClick={onClose} className="w-8 h-8 rounded-full bg-gray-100 hover:bg-gray-200 flex items-center justify-center text-gray-500 transition-colors text-lg font-bold leading-none">×</button>
         </div>
         <div className="p-6">{children}</div>
       </div>
@@ -36,9 +48,112 @@ function Modal({ title, onClose, children }: { title: string; onClose: () => voi
 }
 
 /* ─── INPUT HELPERS ─── */
-const labelCls = "block text-xs font-bold text-[#0e1f3d] mb-1 uppercase tracking-wide";
-const inputCls = "w-full border border-gray-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#0e1f3d]/20 focus:border-[#0e1f3d]";
+const labelCls = "block text-xs font-semibold text-gray-500 mb-1.5 uppercase tracking-widest";
+const inputCls = "w-full border border-gray-200 bg-gray-50 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#0e1f3d]/20 focus:border-[#0e1f3d] focus:bg-white transition-all";
 const textareaCls = `${inputCls} resize-none`;
+
+/* ─── ADMIN LOADING SCREEN ─── */
+const BOOT_STEPS = [
+  { icon: "🔐", label: "Authenticating identity" },
+  { icon: "🛡️", label: "Verifying admin privileges" },
+  { icon: "📡", label: "Establishing secure session" },
+  { icon: "⚙️", label: "Loading dashboard modules" },
+  { icon: "✅", label: "Access granted" },
+];
+
+function AdminLoadingScreen({ onDone }: { onDone: () => void }) {
+  const [step, setStep] = useState(0);
+  const [done, setDone] = useState(false);
+
+  useEffect(() => {
+    BOOT_STEPS.forEach((_, i) => {
+      setTimeout(() => setStep(i + 1), i * 620 + 300);
+    });
+    setTimeout(() => { setDone(true); setTimeout(onDone, 600); }, BOOT_STEPS.length * 620 + 500);
+  }, []);
+
+  const progress = Math.round((step / BOOT_STEPS.length) * 100);
+
+  return (
+    <div
+      className="fixed inset-0 z-[100] flex items-center justify-center transition-opacity duration-500"
+      style={{ background: "radial-gradient(ellipse at 30% 20%, #112244 0%, #0a1628 60%, #060e1a 100%)", opacity: done ? 0 : 1 }}
+    >
+      <div className="absolute inset-0 overflow-hidden pointer-events-none">
+        <div className="absolute top-1/4 left-1/4 w-96 h-96 rounded-full opacity-10 animate-spin-slow"
+          style={{ background: "conic-gradient(from 0deg, transparent 270deg, #d4a017 360deg)", filter: "blur(40px)" }} />
+        <div className="absolute bottom-1/4 right-1/4 w-64 h-64 rounded-full opacity-5 animate-spin-slow"
+          style={{ background: "conic-gradient(from 180deg, transparent 270deg, #4a90d9 360deg)", filter: "blur(30px)", animationDirection: "reverse" }} />
+        {[...Array(18)].map((_, i) => (
+          <div key={i} className="absolute rounded-full bg-white"
+            style={{ width: Math.random() * 2 + 1 + "px", height: Math.random() * 2 + 1 + "px", top: Math.random() * 100 + "%", left: Math.random() * 100 + "%", opacity: Math.random() * 0.4 + 0.1 }} />
+        ))}
+      </div>
+
+      <div className="relative w-full max-w-sm px-6 animate-fade-up">
+        <div className="flex flex-col items-center mb-10">
+          <div className="relative mb-5">
+            <div className="absolute inset-0 rounded-2xl animate-glow" />
+            <div className="relative w-20 h-20 bg-gradient-to-br from-[#d4a017] to-[#b8880f] rounded-2xl flex items-center justify-center shadow-2xl animate-float">
+              <svg className="w-10 h-10 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+              </svg>
+            </div>
+          </div>
+          <h1 className="text-white font-bold text-2xl tracking-tight">EJF Admin Console</h1>
+          <p className="text-white/40 text-xs mt-1 tracking-widest uppercase">Economic Justice Forum</p>
+        </div>
+
+        <div className="bg-white/5 border border-white/10 rounded-2xl p-5 backdrop-blur-sm mb-5">
+          <div className="space-y-3 mb-5">
+            {BOOT_STEPS.map((s, i) => {
+              const isActive = step === i + 1;
+              const isDone = step > i + 1 || (step === BOOT_STEPS.length && i < BOOT_STEPS.length);
+              const isPending = step <= i;
+              return (
+                <div key={i} className={`flex items-center gap-3 transition-all duration-300 ${isPending ? "opacity-25" : "opacity-100"}`}
+                  style={{ animation: step === i + 1 ? "fadeUp 0.4s ease forwards" : undefined }}>
+                  <div className={`w-7 h-7 rounded-full flex items-center justify-center text-xs flex-shrink-0 transition-all duration-300 ${
+                    isDone ? "bg-emerald-500 text-white step-check" : isActive ? "bg-[#d4a017] text-white animate-pulse" : "bg-white/10 text-white/30"
+                  }`}>
+                    {isDone ? (
+                      <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
+                      </svg>
+                    ) : isActive ? (
+                      <div className="w-2 h-2 rounded-full bg-white animate-ping" />
+                    ) : (
+                      <div className="w-1.5 h-1.5 rounded-full bg-white/30" />
+                    )}
+                  </div>
+                  <span className={`text-sm font-medium transition-colors duration-300 ${isDone ? "text-emerald-400" : isActive ? "text-white" : "text-white/30"}`}>
+                    {s.label}
+                  </span>
+                  {isActive && <div className="ml-auto"><div className="w-4 h-4 border-2 border-[#d4a017]/30 border-t-[#d4a017] rounded-full animate-spin" /></div>}
+                </div>
+              );
+            })}
+          </div>
+
+          <div className="mt-4">
+            <div className="flex justify-between text-xs mb-1.5">
+              <span className="text-white/30 tracking-wider uppercase">Progress</span>
+              <span className="text-[#d4a017] font-mono font-bold">{progress}%</span>
+            </div>
+            <div className="w-full h-1.5 bg-white/10 rounded-full overflow-hidden">
+              <div
+                className="h-full rounded-full transition-all duration-500 ease-out"
+                style={{ width: `${progress}%`, background: "linear-gradient(90deg, #d4a017, #f0c040)" }}
+              />
+            </div>
+          </div>
+        </div>
+
+        <p className="text-center text-white/20 text-xs tracking-widest">SECURE ADMIN AREA</p>
+      </div>
+    </div>
+  );
+}
 
 /* ═══════════════════════════════════════════
    EVENTS TAB
@@ -668,231 +783,140 @@ const TABS: { key: Tab; label: string; emoji: string }[] = [
   { key: "admin-access", label: "Admin Access", emoji: "🔑" },
 ];
 
-/* ═══════════════════════════════════════════
-   ADMIN SECRET GATE
-══════════════════════════════════════════ */
-function AdminSecretGate({ email, children }: { email: string; children: React.ReactNode }) {
-  const alreadyVerified = sessionStorage.getItem(SESSION_KEY) === email;
-  const [verified, setVerified] = useState(alreadyVerified);
-  const [code, setCode] = useState("");
-  const [showCode, setShowCode] = useState(false);
-  const [checking, setChecking] = useState(false);
-  const [error, setError] = useState("");
-  const [attempts, setAttempts] = useState(0);
-  const [lockedUntil, setLockedUntil] = useState<number | null>(null);
-  const [countdown, setCountdown] = useState(0);
-  const inputRef = useRef<HTMLInputElement>(null);
-
-  const MAX_ATTEMPTS = 5;
-  const LOCKOUT_SECONDS = 60;
-
-  useEffect(() => {
-    if (lockedUntil === null) return;
-    const tick = setInterval(() => {
-      const remaining = Math.ceil((lockedUntil - Date.now()) / 1000);
-      if (remaining <= 0) { setLockedUntil(null); setAttempts(0); setCountdown(0); clearInterval(tick); }
-      else setCountdown(remaining);
-    }, 500);
-    return () => clearInterval(tick);
-  }, [lockedUntil]);
-
-  if (verified) return <>{children}</>;
-
-  const isLocked = lockedUntil !== null && Date.now() < lockedUntil;
-
-  const handleVerify = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!code.trim() || isLocked) return;
-    setChecking(true);
-    setError("");
-    try {
-      const { data, error: rpcError } = await adminQueries.admin.verifySecret(email, code.trim());
-      if (rpcError) throw new Error(rpcError.message);
-      if (data === true) {
-        sessionStorage.setItem(SESSION_KEY, email);
-        setVerified(true);
-      } else {
-        const next = attempts + 1;
-        setAttempts(next);
-        if (next >= MAX_ATTEMPTS) {
-          setLockedUntil(Date.now() + LOCKOUT_SECONDS * 1000);
-          setError(`Too many attempts. Locked for ${LOCKOUT_SECONDS} seconds.`);
-        } else {
-          setError(`Incorrect code. ${MAX_ATTEMPTS - next} attempt${MAX_ATTEMPTS - next === 1 ? "" : "s"} remaining.`);
-        }
-        setCode("");
-        setTimeout(() => inputRef.current?.focus(), 50);
-      }
-    } catch {
-      setError("Verification failed. Please try again.");
-    }
-    setChecking(false);
-  };
-
-  return (
-    <div className="min-h-screen bg-gradient-to-br from-[#0e1f3d] via-[#0e1f3d] to-[#1a3a6e] flex items-center justify-center px-4">
-      <div className="absolute inset-0 opacity-[0.03] pointer-events-none" style={{ backgroundImage: "radial-gradient(circle, #fff 1px, transparent 1px)", backgroundSize: "28px 28px" }} />
-      <div className="relative w-full max-w-sm">
-        <div className="flex flex-col items-center mb-8">
-          <div className="w-16 h-16 bg-[#d4a017] rounded-2xl flex items-center justify-center shadow-2xl mb-4">
-            <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
-            </svg>
-          </div>
-          <h1 className="text-white font-bold text-2xl text-center">Admin Verification</h1>
-          <p className="text-white/50 text-sm mt-1 text-center">Enter your secret admin code to continue</p>
-        </div>
-
-        <div className="bg-white rounded-3xl shadow-2xl p-8">
-          <div className="mb-5 p-3 bg-[#0e1f3d]/5 rounded-xl flex items-center gap-3">
-            <div className="w-8 h-8 bg-[#0e1f3d] rounded-full flex items-center justify-center text-white text-xs font-bold flex-shrink-0">
-              {email.slice(0, 1).toUpperCase()}
-            </div>
-            <div>
-              <p className="text-xs text-gray-400 leading-none mb-0.5">Signed in as</p>
-              <p className="text-[#0e1f3d] font-semibold text-sm leading-none truncate max-w-[200px]">{email}</p>
-            </div>
-          </div>
-
-          <form onSubmit={handleVerify} className="space-y-4">
-            {error && (
-              <div className="flex items-start gap-2 bg-red-50 border border-red-100 text-red-700 text-xs rounded-xl px-3 py-2.5">
-                <span className="mt-0.5 flex-shrink-0">⚠️</span>
-                <span>{error}</span>
-              </div>
-            )}
-            {isLocked && (
-              <div className="flex items-center gap-2 bg-amber-50 border border-amber-100 text-amber-700 text-xs rounded-xl px-3 py-2.5">
-                <span>🔒</span>
-                <span>Try again in <strong>{countdown}s</strong></span>
-              </div>
-            )}
-
-            <div>
-              <label className="block text-xs font-bold text-[#0e1f3d] mb-1.5 uppercase tracking-wide">Secret Admin Code</label>
-              <div className="relative">
-                <input
-                  ref={inputRef}
-                  type={showCode ? "text" : "password"}
-                  value={code}
-                  onChange={e => setCode(e.target.value)}
-                  placeholder="Enter your admin code"
-                  disabled={isLocked || checking}
-                  autoFocus
-                  className="w-full border border-gray-200 rounded-xl px-4 py-3 pr-11 text-sm focus:outline-none focus:ring-2 focus:ring-[#0e1f3d]/20 focus:border-[#0e1f3d] disabled:bg-gray-50 disabled:text-gray-400 transition-all tracking-widest font-mono"
-                />
-                <button
-                  type="button"
-                  onClick={() => setShowCode(v => !v)}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors"
-                  tabIndex={-1}
-                >
-                  {showCode ? (
-                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21" /></svg>
-                  ) : (
-                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" /></svg>
-                  )}
-                </button>
-              </div>
-            </div>
-
-            <button
-              type="submit"
-              disabled={!code.trim() || isLocked || checking}
-              className="w-full bg-[#0e1f3d] hover:bg-[#1a3a6e] disabled:bg-gray-200 disabled:text-gray-400 text-white font-bold py-3 rounded-xl text-sm transition-all duration-200 flex items-center justify-center gap-2 shadow-lg shadow-[#0e1f3d]/20"
-            >
-              {checking ? (
-                <><div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" /> Verifying…</>
-              ) : "Access Admin Panel →"}
-            </button>
-          </form>
-
-          <div className="mt-5 pt-4 border-t border-gray-100 text-center">
-            <a href="/" className="text-gray-400 text-xs hover:text-gray-600 transition-colors">← Back to site</a>
-          </div>
-        </div>
-
-        <p className="text-center text-white/30 text-xs mt-6">
-          Economic Justice Forum &bull; Secure Admin Area
-        </p>
-      </div>
-    </div>
-  );
-}
-
 export default function Admin() {
   const { user, loading } = useAuth();
   const [, navigate] = useLocation();
   const [tab, setTab] = useState<Tab>("events");
+  const [panelReady, setPanelReady] = useState(false);
+  const [sidebarOpen, setSidebarOpen] = useState(false);
 
   if (loading) return (
-    <div className="min-h-screen flex items-center justify-center">
-      <div className="w-10 h-10 border-4 border-[#0e1f3d]/20 border-t-[#0e1f3d] rounded-full animate-spin" />
+    <div className="min-h-screen flex items-center justify-center" style={{ background: "radial-gradient(ellipse at 30% 20%, #112244 0%, #0a1628 60%, #060e1a 100%)" }}>
+      <div className="flex flex-col items-center gap-4">
+        <div className="relative w-12 h-12">
+          <div className="absolute inset-0 rounded-full border-2 border-white/10" />
+          <div className="absolute inset-0 rounded-full border-2 border-transparent border-t-[#d4a017] animate-spin" />
+        </div>
+        <p className="text-white/30 text-xs tracking-widest uppercase">Loading</p>
+      </div>
     </div>
   );
 
   if (!user) { navigate("/login"); return null; }
 
   if (!user.isAdmin) return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50 px-4">
-      <div className="bg-white rounded-2xl shadow-lg border border-gray-100 p-10 max-w-md w-full text-center">
-        <div className="text-5xl mb-4">🔒</div>
-        <h2 className="text-xl font-bold text-[#0e1f3d] mb-2">Admin Access Only</h2>
-        <p className="text-gray-500 text-sm mb-6">Your account does not have admin privileges. Contact the EJF team to request access.</p>
-        <button onClick={() => navigate("/")} className="bg-[#0e1f3d] text-white font-semibold px-6 py-2.5 rounded-xl text-sm hover:bg-[#1a3a6e] transition-colors">Back to Home</button>
+    <div className="min-h-screen flex items-center justify-center px-4" style={{ background: "radial-gradient(ellipse at 30% 20%, #112244 0%, #0a1628 60%, #060e1a 100%)" }}>
+      <div className="bg-white/5 border border-white/10 backdrop-blur-sm rounded-3xl p-10 max-w-md w-full text-center animate-fade-up">
+        <div className="w-16 h-16 bg-red-500/20 rounded-2xl flex items-center justify-center mx-auto mb-5">
+          <svg className="w-8 h-8 text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636" />
+          </svg>
+        </div>
+        <h2 className="text-xl font-bold text-white mb-2">Access Denied</h2>
+        <p className="text-white/40 text-sm mb-8">Your account does not have admin privileges. Contact the EJF team to request access.</p>
+        <button onClick={() => navigate("/")} className="bg-[#d4a017] hover:bg-[#b8880f] text-white font-semibold px-6 py-2.5 rounded-xl text-sm transition-colors">Back to Home</button>
       </div>
     </div>
   );
 
+  if (!panelReady) return <AdminLoadingScreen onDone={() => setPanelReady(true)} />;
+
+  const currentTab = TABS.find(t => t.key === tab);
+
   return (
-    <div className="min-h-screen bg-gray-50">
-      {/* Header */}
-      <div className="bg-[#0e1f3d] text-white px-6 py-4 flex items-center justify-between shadow-lg">
-        <div className="flex items-center gap-3">
-          <img src="/logo.jpeg" alt="EJF" className="w-8 h-8 rounded-lg object-cover" />
-          <div>
-            <h1 className="font-bold text-base leading-tight">EJF Admin Panel</h1>
-            <p className="text-white/50 text-xs">Economic Justice Forum</p>
+    <div className="min-h-screen flex" style={{ background: "#f0f2f7" }}>
+      {/* ── SIDEBAR ── */}
+      <aside className={`fixed inset-y-0 left-0 z-40 flex flex-col transition-transform duration-300 ease-in-out md:relative md:translate-x-0 ${sidebarOpen ? "translate-x-0" : "-translate-x-full"}`}
+        style={{ width: 240, background: "linear-gradient(180deg, #0a1628 0%, #0e1f3d 100%)", borderRight: "1px solid rgba(255,255,255,0.06)" }}>
+
+        <div className="flex items-center gap-3 px-5 py-5 border-b" style={{ borderColor: "rgba(255,255,255,0.07)" }}>
+          <div className="w-9 h-9 bg-gradient-to-br from-[#d4a017] to-[#b8880f] rounded-xl flex items-center justify-center shadow-lg flex-shrink-0">
+            <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+            </svg>
           </div>
+          <div>
+            <p className="text-white font-bold text-sm leading-tight">EJF Admin</p>
+            <p className="text-white/30 text-[10px] leading-tight tracking-wide">Control Center</p>
+          </div>
+          <button onClick={() => setSidebarOpen(false)} className="ml-auto md:hidden text-white/40 hover:text-white">
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
+          </button>
         </div>
-        <div className="flex items-center gap-4">
-          <span className="text-white/60 text-xs hidden sm:block">Signed in as <span className="text-[#d4a017] font-bold">{user.email}</span></span>
-          <button onClick={() => navigate("/")} className="border border-white/20 hover:border-white/40 text-white text-xs font-semibold px-4 py-2 rounded-lg transition-colors">← View Site</button>
-        </div>
-      </div>
 
-      <div className="flex min-h-[calc(100vh-64px)]">
-        {/* Sidebar */}
-        <aside className="w-52 bg-white border-r border-gray-100 flex-shrink-0 hidden md:block">
-          <nav className="p-3 space-y-0.5 sticky top-0">
-            {TABS.map(t => (
-              <button
-                key={t.key}
-                onClick={() => setTab(t.key)}
-                className={`w-full flex items-center gap-2.5 px-3 py-2.5 rounded-xl text-sm font-semibold transition-all ${
-                  tab === t.key ? "bg-[#0e1f3d] text-white shadow-sm" : "text-gray-600 hover:bg-gray-50 hover:text-[#0e1f3d]"
-                }`}
-              >
-                <span>{t.emoji}</span> {t.label}
-              </button>
-            ))}
-          </nav>
-        </aside>
-
-        {/* Mobile tab bar */}
-        <div className="md:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-gray-100 z-40 flex overflow-x-auto">
+        <nav className="flex-1 px-3 py-4 space-y-0.5 overflow-y-auto">
           {TABS.map(t => (
-            <button key={t.key} onClick={() => setTab(t.key)} className={`flex-shrink-0 flex flex-col items-center gap-0.5 px-3 py-2 text-[10px] font-semibold transition-colors ${tab === t.key ? "text-[#0e1f3d] border-t-2 border-[#0e1f3d]" : "text-gray-400"}`}>
-              <span className="text-base">{t.emoji}</span>{t.label.split(" ")[0]}
+            <button
+              key={t.key}
+              onClick={() => { setTab(t.key); setSidebarOpen(false); }}
+              className={`admin-sidebar-item w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all ${
+                tab === t.key
+                  ? "active bg-white/10 text-white"
+                  : "text-white/40 hover:bg-white/5 hover:text-white/70"
+              }`}
+            >
+              <span className="text-base w-5 text-center flex-shrink-0">{t.emoji}</span>
+              <span>{t.label}</span>
+              {tab === t.key && <div className="ml-auto w-1.5 h-1.5 rounded-full bg-[#d4a017]" />}
             </button>
           ))}
-        </div>
+        </nav>
 
-        {/* Main content */}
-        <main className="flex-1 p-6 pb-24 md:pb-6 overflow-auto">
-          <div className="max-w-4xl mx-auto">
-            <h2 className="text-xl font-bold text-[#0e1f3d] mb-1">{TABS.find(t => t.key === tab)?.emoji} {TABS.find(t => t.key === tab)?.label}</h2>
-            <div className="w-10 h-0.5 bg-[#d4a017] mb-5" />
+        <div className="px-4 py-4 border-t" style={{ borderColor: "rgba(255,255,255,0.07)" }}>
+          <div className="flex items-center gap-2.5 mb-3">
+            <div className="w-7 h-7 rounded-full bg-[#d4a017] flex items-center justify-center text-white text-xs font-bold flex-shrink-0">
+              {user.email?.slice(0, 1).toUpperCase()}
+            </div>
+            <div className="min-w-0">
+              <p className="text-white text-xs font-semibold truncate">{user.name || "Admin"}</p>
+              <p className="text-white/30 text-[10px] truncate">{user.email}</p>
+            </div>
+          </div>
+          <button
+            onClick={() => navigate("/")}
+            className="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-white/40 hover:text-white hover:bg-white/5 text-xs font-medium transition-all"
+          >
+            <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" /></svg>
+            View Public Site
+          </button>
+        </div>
+      </aside>
+
+      {sidebarOpen && <div className="fixed inset-0 z-30 bg-black/50 md:hidden" onClick={() => setSidebarOpen(false)} />}
+
+      {/* ── MAIN ── */}
+      <div className="flex-1 flex flex-col min-w-0">
+        {/* Topbar */}
+        <header className="bg-white border-b border-gray-200/80 px-6 py-3.5 flex items-center gap-4 sticky top-0 z-20 shadow-sm">
+          <button onClick={() => setSidebarOpen(true)} className="md:hidden p-1.5 rounded-lg text-gray-500 hover:bg-gray-100 transition-colors">
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" /></svg>
+          </button>
+
+          <div className="flex items-center gap-2 min-w-0">
+            <span className="text-lg">{currentTab?.emoji}</span>
+            <div>
+              <h1 className="text-sm font-bold text-[#0e1f3d] leading-tight">{currentTab?.label}</h1>
+              <p className="text-[10px] text-gray-400 leading-tight">Economic Justice Forum</p>
+            </div>
+          </div>
+
+          <div className="ml-auto flex items-center gap-3">
+            <div className="hidden sm:flex items-center gap-2 bg-emerald-50 border border-emerald-100 rounded-full px-3 py-1">
+              <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+              <span className="text-emerald-700 text-xs font-semibold">Live</span>
+            </div>
+            <div className="hidden md:flex items-center gap-2 bg-gray-50 border border-gray-100 rounded-full px-3 py-1.5">
+              <div className="w-6 h-6 rounded-full bg-[#d4a017] flex items-center justify-center text-white text-[10px] font-bold">
+                {user.email?.slice(0, 1).toUpperCase()}
+              </div>
+              <span className="text-gray-600 text-xs font-medium max-w-[140px] truncate">{user.email}</span>
+            </div>
+          </div>
+        </header>
+
+        {/* Content */}
+        <main className="flex-1 p-5 md:p-7 pb-24 md:pb-7 overflow-auto">
+          <div className="max-w-5xl mx-auto tab-content-enter" key={tab}>
             {tab === "events" && <EventsTab />}
             {tab === "programs" && <ProgramsTab />}
             {tab === "publications" && <PublicationsTab />}
@@ -903,6 +927,19 @@ export default function Admin() {
             {tab === "admin-access" && <AdminAccessTab />}
           </div>
         </main>
+
+        {/* Mobile bottom bar */}
+        <div className="md:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-gray-100 z-20 flex overflow-x-auto shadow-lg">
+          {TABS.map(t => (
+            <button key={t.key} onClick={() => setTab(t.key)}
+              className={`flex-shrink-0 flex flex-col items-center gap-0.5 px-3 py-2.5 min-w-[60px] text-[9px] font-bold tracking-wide uppercase transition-colors ${
+                tab === t.key ? "text-[#0e1f3d] border-t-2 border-[#d4a017]" : "text-gray-300 border-t-2 border-transparent"
+              }`}>
+              <span className="text-lg">{t.emoji}</span>
+              {t.label.split(" ")[0]}
+            </button>
+          ))}
+        </div>
       </div>
     </div>
   );
