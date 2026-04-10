@@ -1,5 +1,12 @@
 import { useState } from "react";
 
+import imgChris from "@assets/chris_1775864978911.jpeg";
+import imgArnold from "@assets/arnold_1775864978910.jpeg";
+import imgHassan from "@assets/hassan_1775864978921.jpeg";
+import imgIsaac from "@assets/issac_1775864978922.jpeg";
+import imgMoses from "@assets/moses_1775864978933.jpeg";
+import imgTeam from "@assets/WhatsApp_Image_2026-04-08_at_17.23.53_(2)_1775865230373.jpeg";
+
 /* ─────────────────────────────────────────────
    TEAM DATA
 ───────────────────────────────────────────── */
@@ -7,6 +14,8 @@ const president = {
   name: "Hon. Christopher Mwambingu",
   role: "President & Founder",
   initials: "CM",
+  photo: imgChris,
+  photoPos: "object-top",
   color: "from-[#0e1f3d] to-[#1a3a6e]",
   bio: "Mr. Christopher Mwambingu is an independent leader, former Member of the County Assembly of Taita Taveta, and 2025 Mwatate MP candidate. A committed advocate of economic justice, human rights, and the protection of both people's and environmental rights, he has dedicated his life to defending the rights of rural and marginalized communities and ensuring they achieve economic freedom. Christopher believes that true justice and lasting freedom cannot exist without economic empowerment, and he works tirelessly to create opportunities that enable communities to thrive. Drawing on his experience in governance, public service, and community organizing, he combines vision, integrity, and transformative leadership to advance equity, accountability, and sustainable development for all.",
 };
@@ -16,6 +25,8 @@ const coFounders = [
     name: "Hon. Amriya Boy Juma",
     role: "Co-Founder",
     initials: "AJ",
+    photo: null as string | null,
+    photoPos: "object-center",
     color: "from-[#1a4a7a] to-[#2a6aaa]",
     bio: "Hon. Amriya Boy Juma, fondly known as Wakili Mtetezi, is the first elected female Member of the County Assembly (MCA) for Mjambere Ward, Mombasa County, renowned for her commitment to justice, equity, and community empowerment. She is a distinguished Advocate of the High Court of Kenya, holding an LL.B. from the University of Nairobi and a Postgraduate Diploma in Law from the Kenya School of Law, and is the founder of Amriya Juma Boy and Company Advocates, championing human rights, gender equality, legal aid expansion, and community legal education. Elected in 2025 to chair the Lands Committee, she continues to advocate for land rights, good governance, social justice, and equitable resource distribution, inspiring communities and nurturing future leaders.",
   },
@@ -23,6 +34,8 @@ const coFounders = [
     name: "Moses Macharia",
     role: "Co-Founder",
     initials: "MM",
+    photo: imgMoses as string | null,
+    photoPos: "object-top",
     color: "from-[#2d4a1e] to-[#4a7a30]",
     bio: "Mr. Moses Macharia Bakari is a visionary leader and firm believer in selfless and dedicated leadership aimed at transforming the nation. He sees leadership as a God-ordained responsibility, grounded in service, integrity, and the pursuit of positive change. Moses is committed to empowering communities, fostering equity, and driving sustainable development for the greater good. He is an alumnus of Njabini Boys High School and a Political Science graduate from the University of Nairobi, where he gained the knowledge and skills that continue to guide his leadership journey.",
   },
@@ -30,6 +43,8 @@ const coFounders = [
     name: "Reverend Isaac Mwambingu",
     role: "Co-Founder",
     initials: "IM",
+    photo: imgIsaac as string | null,
+    photoPos: "object-top",
     color: "from-[#4a2d1e] to-[#7a4a30]",
     bio: "Rev. Isaac Mwambingu is an Anglican Minister in the Diocese of Taita/Taveta, Kenya, with a track record of fostering positive development across five parishes. He is a passionate advocate for human rights, social justice, and poverty eradication, serving as Secretary of Social Justice Ambassadors and Director of Wahudumu SACCO. A standing committee member of the Diocesan Synod and board member of Mwambonu, Kitumbi, and Ngangao High Schools, Rev. Mwambingu embodies transformative leadership that integrates service to God, humanity, and the environment.",
   },
@@ -37,6 +52,8 @@ const coFounders = [
     name: "Mr. Hassan Maghanga",
     role: "Co-Founder",
     initials: "HM",
+    photo: imgHassan as string | null,
+    photoPos: "object-top",
     color: "from-[#3a1a4a] to-[#6a3a7a]",
     bio: "Hassan Maghanga is a community entrepreneur and leader committed to empowering the transportation sector in Taita Taveta, with a focus on the motorbike and taxi industry. Through his work, he supports local drivers, fosters economic opportunities, and promotes sustainable growth within the sector. Hassan's leadership is anchored in community development, innovation, and ensuring that the transportation industry serves as a vehicle for economic empowerment for marginalized communities.",
   },
@@ -44,6 +61,8 @@ const coFounders = [
     name: "Mr. Egwa Arnold",
     role: "Co-Founder & Digital Rights Director",
     initials: "EA",
+    photo: imgArnold as string | null,
+    photoPos: "object-top",
     color: "from-[#1a3a4a] to-[#2a5a6a]",
     bio: "Arnold Egwa is a young tech leader, AI expert, and Program Director for Digital Rights at the Economic Justice Forum, committed to advancing digital justice and economic equity. He champions data privacy, combats digital monopolies, and ensures that technology empowers communities rather than deepens disparities. Driven by a belief that technology should serve humanity, Arnold works to close the digital divide and create systems and policies that allow all communities to thrive in the digital age.",
   },
