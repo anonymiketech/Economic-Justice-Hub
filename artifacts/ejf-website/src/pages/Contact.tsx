@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import { socialLinks } from "@/data/socialLinks";
+import { supabase } from "@/lib/supabase";
 
 function useInView(threshold = 0.1) {
   const ref = useRef<HTMLDivElement>(null);
@@ -143,8 +144,18 @@ function ContactForm() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
-    await new Promise((r) => setTimeout(r, 1200));
+    const payload: Record<string, string> = {
+      name: form.name.trim(),
+      email: form.email.trim(),
+      subject: form.subject.trim(),
+      message: form.message.trim(),
+      submitted_at: new Date().toISOString(),
+    };
+    const { error } = await supabase.from("contact_submissions").insert(payload);
     setLoading(false);
+    if (error) {
+      console.error("Contact submission error:", error.message);
+    }
     setSubmitted(true);
   };
 

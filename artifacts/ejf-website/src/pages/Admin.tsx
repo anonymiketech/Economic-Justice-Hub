@@ -158,6 +158,14 @@ function AdminLoadingScreen({ onDone }: { onDone: () => void }) {
 /* ═══════════════════════════════════════════
    EVENTS TAB
 ══════════════════════════════════════════ */
+function isoToDisplay(iso: string) {
+  if (!iso) return "";
+  return new Date(iso + "T00:00:00").toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" });
+}
+function todayISO() {
+  return new Date().toISOString().slice(0, 10);
+}
+
 function EventsTab() {
   const [rows, setRows] = useState<DBEvent[]>([]);
   const [loading, setLoading] = useState(true);
@@ -165,11 +173,14 @@ function EventsTab() {
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
 
-  const blank: Omit<DBEvent, "id" | "created_at"> = {
-    title: "", description: "", date: "", date_iso: "", location: "", time: "", category: "Environmental",
-    emoji: "", featured: false, published: true,
+  const makeBlank = (): Omit<DBEvent, "id" | "created_at"> => {
+    const iso = todayISO();
+    return {
+      title: "", description: "", date: isoToDisplay(iso), date_iso: iso,
+      location: "", time: "", category: "Environmental", emoji: "", featured: false, published: true,
+    };
   };
-  const [form, setForm] = useState(blank);
+  const [form, setForm] = useState(makeBlank());
 
   const load = async () => {
     setLoading(true);
@@ -179,17 +190,29 @@ function EventsTab() {
   };
   useEffect(() => { load(); }, []);
 
-  const openAdd = () => { setForm(blank); setError(""); setModal("add"); };
-  const openEdit = (r: DBEvent) => { setForm({ title: r.title, description: r.description, date: r.date, date_iso: r.date_iso, location: r.location, time: r.time, category: r.category, emoji: r.emoji, featured: r.featured, published: r.published }); setError(""); setModal(r); };
+  const openAdd = () => { setForm(makeBlank()); setError(""); setModal("add"); };
+  const openEdit = (r: DBEvent) => {
+    setForm({ title: r.title, description: r.description, date: r.date, date_iso: r.date_iso, location: r.location, time: r.time, category: r.category, emoji: r.emoji, featured: r.featured, published: r.published });
+    setError(""); setModal(r);
+  };
+
+  const setDateISO = (iso: string) => {
+    setForm(f => ({ ...f, date_iso: iso, date: isoToDisplay(iso) }));
+  };
 
   const save = async () => {
-    if (!form.title.trim() || !form.date.trim()) { setError("Title and date are required."); return; }
+    if (!form.title.trim()) { setError("Title is required."); return; }
+    const payload = {
+      ...form,
+      date: form.date.trim() || isoToDisplay(form.date_iso),
+      date_iso: form.date_iso || todayISO(),
+    };
     setSaving(true); setError("");
     if (modal === "add") {
-      const { error } = await adminQueries.events.insert(form);
+      const { error } = await adminQueries.events.insert(payload);
       if (error) { setError(error.message); setSaving(false); return; }
     } else if (modal && typeof modal === "object") {
-      const { error } = await adminQueries.events.update(modal.id, form);
+      const { error } = await adminQueries.events.update(modal.id, payload);
       if (error) { setError(error.message); setSaving(false); return; }
     }
     setSaving(false); setModal(null); load();
@@ -249,12 +272,19 @@ function EventsTab() {
             {error && <p className="text-red-500 text-xs bg-red-50 rounded-lg px-3 py-2">{error}</p>}
             <div><label className={labelCls}>Title *</label><input className={inputCls} value={form.title} onChange={e => setForm(f => ({ ...f, title: e.target.value }))} placeholder="Event title" /></div>
             <div className="grid grid-cols-2 gap-3">
-              <div><label className={labelCls}>Display Date *</label><input className={inputCls} value={form.date} onChange={e => setForm(f => ({ ...f, date: e.target.value }))} placeholder="March 15, 2025" /></div>
-              <div><label className={labelCls}>Date ISO (for sorting)</label><input type="date" className={inputCls} value={form.date_iso} onChange={e => setForm(f => ({ ...f, date_iso: e.target.value }))} /></div>
+              <div>
+                <label className={labelCls}>Date *</label>
+                <input type="date" className={inputCls} value={form.date_iso} onChange={e => setDateISO(e.target.value)} />
+                {form.date && <p className="text-xs text-gray-400 mt-1 pl-1">{form.date}</p>}
+              </div>
+              <div><label className={labelCls}>Time</label><input className={inputCls} value={form.time} onChange={e => setForm(f => ({ ...f, time: e.target.value }))} placeholder="9:00 AM – 4:00 PM" /></div>
             </div>
             <div className="grid grid-cols-2 gap-3">
               <div><label className={labelCls}>Location</label><input className={inputCls} value={form.location} onChange={e => setForm(f => ({ ...f, location: e.target.value }))} placeholder="Nairobi" /></div>
-              <div><label className={labelCls}>Time</label><input className={inputCls} value={form.time} onChange={e => setForm(f => ({ ...f, time: e.target.value }))} placeholder="9:00 AM – 4:00 PM" /></div>
+              <div>
+                <label className={labelCls}>Display Date Override</label>
+                <input className={inputCls} value={form.date} onChange={e => setForm(f => ({ ...f, date: e.target.value }))} placeholder="Auto-filled from date picker above" />
+              </div>
             </div>
             <div>
               <label className={labelCls}>Category</label>
@@ -478,29 +508,28 @@ function ContactsTab() {
     <div>
       <p className="text-sm text-gray-500 mb-4">Messages submitted through the Contact page.</p>
 
-      {rlsError && (
+      {(rlsError || (!loading && rows.length === 0)) && (
         <div className="mb-4 bg-amber-50 border border-amber-200 rounded-2xl p-5">
-          <p className="font-bold text-amber-800 text-sm mb-2">Permission issue — run this SQL in Supabase to fix it:</p>
-          <pre className="bg-white border border-amber-100 rounded-xl p-3 text-xs text-gray-700 overflow-x-auto whitespace-pre-wrap">{`CREATE POLICY "Admin reads contact_submissions"
+          <p className="font-bold text-amber-800 text-sm mb-1">
+            {rlsError ? "Permission blocked — run this SQL in Supabase to fix:" : "No messages yet. If you've submitted the contact form and don't see anything, run this SQL in Supabase:"}
+          </p>
+          <p className="text-amber-700 text-xs mb-3">Go to Supabase → SQL Editor → paste and run:</p>
+          <pre className="bg-white border border-amber-100 rounded-xl p-3 text-xs text-gray-700 overflow-x-auto whitespace-pre-wrap">{`-- Allow visitors to submit contact forms (without being logged in)
+CREATE POLICY "Public can submit contact"
+  ON public.contact_submissions FOR INSERT
+  TO anon, authenticated
+  WITH CHECK (true);
+
+-- Allow admins to read all submissions
+CREATE POLICY "Admin reads contact_submissions"
   ON public.contact_submissions FOR SELECT
   TO authenticated USING (true);
 
+-- Allow admins to delete submissions
 CREATE POLICY "Admin deletes contact_submissions"
   ON public.contact_submissions FOR DELETE
   TO authenticated USING (true);`}</pre>
-        </div>
-      )}
-
-      {!rlsError && rows.length === 0 && !loading && (
-        <div className="mb-4 bg-blue-50 border border-blue-100 rounded-2xl p-5">
-          <p className="font-bold text-blue-800 text-sm mb-2">No messages yet — or RLS may be blocking access. Run this SQL in Supabase to ensure admins can read all messages:</p>
-          <pre className="bg-white border border-blue-100 rounded-xl p-3 text-xs text-gray-700 overflow-x-auto whitespace-pre-wrap">{`CREATE POLICY "Admin reads contact_submissions"
-  ON public.contact_submissions FOR SELECT
-  TO authenticated USING (true);
-
-CREATE POLICY "Admin deletes contact_submissions"
-  ON public.contact_submissions FOR DELETE
-  TO authenticated USING (true);`}</pre>
+          <button onClick={load} className="mt-3 bg-amber-600 hover:bg-amber-700 text-white text-xs font-bold px-4 py-2 rounded-xl transition-colors">Refresh after running SQL</button>
         </div>
       )}
 
@@ -591,6 +620,10 @@ function DonationsTab() {
 function NewsletterTab() {
   const [rows, setRows] = useState<DBNewsletter[]>([]);
   const [loading, setLoading] = useState(true);
+  const [addEmail, setAddEmail] = useState("");
+  const [addName, setAddName] = useState("");
+  const [adding, setAdding] = useState(false);
+  const [addError, setAddError] = useState("");
 
   const load = async () => { setLoading(true); const { data } = await adminQueries.newsletter.list(); setRows(data ?? []); setLoading(false); };
   useEffect(() => { load(); }, []);
@@ -598,14 +631,42 @@ function NewsletterTab() {
   const toggle = async (r: DBNewsletter) => { await adminQueries.newsletter.toggleActive(r.id, !r.active); load(); };
   const del = async (id: string) => { if (!confirm("Remove this subscriber?")) return; await adminQueries.newsletter.delete(id); load(); };
 
+  const addManually = async (e: React.FormEvent) => {
+    e.preventDefault();
+    const email = addEmail.trim().toLowerCase();
+    if (!email || !email.includes("@")) { setAddError("Enter a valid email."); return; }
+    setAdding(true); setAddError("");
+    const { error } = await adminQueries.newsletter.subscribe(email, addName.trim());
+    if (error) {
+      setAddError(error.message.includes("duplicate") ? "This email is already subscribed." : error.message);
+    } else {
+      setAddEmail(""); setAddName(""); load();
+    }
+    setAdding(false);
+  };
+
   const active = rows.filter(r => r.active).length;
 
   return (
-    <div>
-      <div className="flex items-center gap-4 mb-4">
+    <div className="space-y-5">
+      <div className="flex items-center gap-4">
         <div className="bg-[#0e1f3d] text-white px-5 py-3 rounded-xl"><p className="text-xs text-white/60 uppercase tracking-wide">Total Subscribers</p><p className="font-bold text-lg">{rows.length}</p></div>
         <div className="bg-green-50 text-green-700 px-5 py-3 rounded-xl"><p className="text-xs uppercase tracking-wide">Active</p><p className="font-bold text-lg">{active}</p></div>
       </div>
+
+      <form onSubmit={addManually} className="flex gap-2 flex-wrap items-start bg-gray-50 border border-gray-200 rounded-xl p-4">
+        <div className="flex-1 min-w-[200px]">
+          <input type="email" value={addEmail} onChange={e => { setAddEmail(e.target.value); setAddError(""); }} placeholder="Email address *" className={inputCls} />
+        </div>
+        <div className="flex-1 min-w-[160px]">
+          <input value={addName} onChange={e => setAddName(e.target.value)} placeholder="Name (optional)" className={inputCls} />
+        </div>
+        <button type="submit" disabled={adding} className="bg-[#0e1f3d] hover:bg-[#1a3a6e] disabled:bg-gray-300 text-white font-bold text-sm px-5 py-2.5 rounded-xl transition-colors whitespace-nowrap">
+          {adding ? "Adding…" : "+ Add Subscriber"}
+        </button>
+        {addError && <p className="w-full text-red-500 text-xs mt-1">{addError}</p>}
+      </form>
+
       {loading ? <Spinner /> : rows.length === 0 ? <EmptyState msg="No newsletter subscribers yet." /> : (
         <div className="overflow-x-auto rounded-xl border border-gray-100">
           <table className="w-full text-sm">
