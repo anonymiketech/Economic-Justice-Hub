@@ -711,7 +711,6 @@ export default function Admin() {
   );
 
   return (
-    <AdminSecretGate email={user.email!}>
     <div className="min-h-screen bg-gray-50">
       {/* Header */}
       <div className="bg-[#0e1f3d] text-white px-6 py-4 flex items-center justify-between shadow-lg">
@@ -771,6 +770,5 @@ export default function Admin() {
         </main>
       </div>
     </div>
-    </AdminSecretGate>
   );
 }
