@@ -29,7 +29,14 @@ function getInitials(name: string) {
   return name.split(" ").map((n) => n[0]).join("").toUpperCase().slice(0, 2);
 }
 
+const DESIGNATED_ADMINS: string[] = (import.meta.env.VITE_ADMIN_EMAILS ?? "")
+  .split(",")
+  .map((e: string) => e.trim().toLowerCase())
+  .filter(Boolean);
+
 async function fetchIsAdmin(email: string): Promise<boolean> {
+  const normalizedEmail = email.trim().toLowerCase();
+  if (DESIGNATED_ADMINS.includes(normalizedEmail)) return true;
   try {
     const timeout = new Promise<boolean>((resolve) => setTimeout(() => resolve(false), 6000));
     const query = Promise.resolve(
