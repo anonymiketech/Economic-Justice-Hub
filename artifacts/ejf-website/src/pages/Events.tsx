@@ -1,6 +1,16 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 import { adminQueries, DBEvent } from "@/lib/adminQueries";
 
+import ttnp1 from "@assets/latest1_18.50.56_551de1ff_1775865776636.jpg";
+import ttnp2 from "@assets/latest2_2025-11-20_at_18.51.03_39cb7bbc_1775865776635.jpg";
+import ttnp3 from "@assets/latest3_1775865776636.jpg";
+import ttnp4 from "@assets/latest4_1775865776634.jpg";
+import ttnp5 from "@assets/latest5_1775865776634.jpg";
+import ttnp6 from "@assets/latest6_1775865776635.jpg";
+import ttnp7 from "@assets/latest7_1775865776633.jpg";
+import ttnp8 from "@assets/latest8_1775865776633.jpg";
+import ttnp9 from "@assets/latest9_1775865776632.jpg";
+
 /* ─────────────────────────────────────────────
    HELPERS
 ───────────────────────────────────────────── */
@@ -397,79 +407,192 @@ function UpcomingEvents() {
 /* ─────────────────────────────────────────────
    LATEST EVENTS GALLERY — TTNP
 ───────────────────────────────────────────── */
+const TTNP_PHOTOS = [
+  { src: ttnp1, caption: "EJF members united at TTNP" },
+  { src: ttnp2, caption: "Tree planting in action" },
+  { src: ttnp3, caption: "EJF team at Taita Taveta National Park" },
+  { src: ttnp4, caption: "Hands in the soil — climate action" },
+  { src: ttnp5, caption: "Youth-led reforestation" },
+  { src: ttnp6, caption: "Community tree planting drive" },
+  { src: ttnp7, caption: "Unity at TTNP" },
+  { src: ttnp8, caption: "EJF solidarity" },
+  { src: ttnp9, caption: "Building a greener future" },
+];
+
 function LatestEventsGallery() {
   const { ref, inView } = useInView();
-  const [lightbox, setLightbox] = useState<string | null>(null);
+  const [lightboxIdx, setLightboxIdx] = useState<number | null>(null);
+  const [paused, setPaused] = useState(false);
+  const stripRef = useRef<HTMLDivElement>(null);
 
-  const placeholders = [
-    { id: 1, label: "Tree Planting" },
-    { id: 2, label: "Community Action" },
-    { id: 3, label: "Team Effort" },
-    { id: 4, label: "Youth Participants" },
-    { id: 5, label: "Group Photo" },
-    { id: 6, label: "Celebration" },
-  ];
+  const openLightbox = (idx: number) => setLightboxIdx(idx % TTNP_PHOTOS.length);
+  const closeLightbox = () => setLightboxIdx(null);
+  const prevPhoto = () => setLightboxIdx((i) => i === null ? 0 : (i - 1 + TTNP_PHOTOS.length) % TTNP_PHOTOS.length);
+  const nextPhoto = () => setLightboxIdx((i) => i === null ? 0 : (i + 1) % TTNP_PHOTOS.length);
+
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if (lightboxIdx === null) return;
+      if (e.key === "Escape") closeLightbox();
+      if (e.key === "ArrowLeft") prevPhoto();
+      if (e.key === "ArrowRight") nextPhoto();
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [lightboxIdx]);
+
+  const doubled = [...TTNP_PHOTOS, ...TTNP_PHOTOS];
+  const CARD_W = 272;
+  const GAP = 12;
+  const TOTAL_W = TTNP_PHOTOS.length * (CARD_W + GAP);
 
   return (
-    <section className="bg-white py-14 px-4">
-      <div className="max-w-5xl mx-auto">
+    <section className="bg-white py-14 px-4 overflow-hidden">
+      <style>{`
+        @keyframes ttnpScroll {
+          0%   { transform: translateX(0); }
+          100% { transform: translateX(-${TOTAL_W}px); }
+        }
+        .ttnp-strip {
+          animation: ttnpScroll 30s linear infinite;
+        }
+        .ttnp-strip.paused {
+          animation-play-state: paused;
+        }
+      `}</style>
+
+      <div className="max-w-6xl mx-auto">
         <div ref={ref} className={`mb-6 transition-all duration-700 ${inView ? "opacity-100 translate-y-0" : "opacity-0 translate-y-6"}`}>
           <h2 className="text-2xl md:text-3xl font-bold text-[#0e1f3d] mb-1">Latest Events</h2>
-          <p className="text-gray-500 text-sm mb-3">Latest photos and videos from our most recent events. Click any thumbnail to view.</p>
-          <div className="w-12 h-0.5 bg-[#d4a017] mb-6" />
+          <p className="text-gray-500 text-sm mb-3">Photos from our most recent events. Click any image to view full size.</p>
+          <div className="w-12 h-0.5 bg-[#d4a017]" />
         </div>
 
         {/* TTNP Announcement Banner */}
-        <div className={`bg-gradient-to-r from-[#0e1f3d] to-[#1a3a6e] rounded-2xl p-6 mb-7 text-center transition-all duration-700 delay-100 ${inView ? "opacity-100 scale-100" : "opacity-0 scale-95"}`}>
+        <div className={`bg-gradient-to-r from-[#0e1f3d] to-[#1a3a6e] rounded-2xl p-6 mb-8 text-center transition-all duration-700 delay-100 ${inView ? "opacity-100 scale-100" : "opacity-0 scale-95"}`}>
           <p className="text-[#d4a017] font-black text-xl md:text-2xl uppercase tracking-wide leading-relaxed">
-            This is Our Latest Event Which Happened<br />at TTNP — Gallery Below
+            This is Our Latest Event Which Happened<br className="hidden sm:block" /> at TTNP — Gallery Below
           </p>
-          <div className="flex justify-center gap-1.5 mt-3">
+          <div className="flex justify-center gap-2 mt-4">
             {[...Array(5)].map((_, i) => (
-              <div key={i} className="w-1.5 h-1.5 bg-[#d4a017] rounded-full animate-bounce" style={{ animationDelay: `${i * 0.1}s` }} />
+              <div key={i} className="w-2 h-2 bg-[#d4a017] rounded-full animate-bounce" style={{ animationDelay: `${i * 0.12}s` }} />
             ))}
           </div>
+          <p className="text-white/40 text-xs mt-3 uppercase tracking-widest">Taita Taveta National Park · 2025</p>
         </div>
 
-        {/* Horizontal scrollable photo strip */}
+        {/* Auto-scrolling strip */}
         <div className={`transition-all duration-700 delay-200 ${inView ? "opacity-100 translate-y-0" : "opacity-0 translate-y-6"}`}>
-          <div className="flex gap-3 overflow-x-auto pb-2 scrollbar-hide snap-x snap-mandatory">
-            {placeholders.map((p, i) => (
-              <div
-                key={p.id}
-                onClick={() => setLightbox(p.label)}
-                className="flex-shrink-0 snap-start w-44 h-32 bg-gradient-to-br from-green-900 to-green-700 rounded-xl relative cursor-pointer overflow-hidden group border-2 border-transparent hover:border-[#d4a017] transition-all hover:scale-105"
-                style={{ transitionDelay: `${i * 60}ms` }}
-              >
-                <div className="absolute inset-0 bg-black/30 flex items-center justify-center text-white text-xs font-bold opacity-0 group-hover:opacity-100 transition-opacity">
-                  <div className="text-center"><div className="text-2xl">🖼️</div><p>{p.label}</p></div>
+          <div
+            className="relative overflow-hidden"
+            onMouseEnter={() => setPaused(true)}
+            onMouseLeave={() => setPaused(false)}
+            onTouchStart={() => setPaused(true)}
+            onTouchEnd={() => setPaused(false)}
+          >
+            {/* Left/right fade edges */}
+            <div className="absolute left-0 top-0 bottom-0 w-12 bg-gradient-to-r from-white to-transparent z-10 pointer-events-none" />
+            <div className="absolute right-0 top-0 bottom-0 w-12 bg-gradient-to-l from-white to-transparent z-10 pointer-events-none" />
+
+            <div
+              ref={stripRef}
+              className={`ttnp-strip flex gap-3${paused ? " paused" : ""}`}
+              style={{ width: `${TOTAL_W * 2}px` }}
+            >
+              {doubled.map((photo, i) => (
+                <div
+                  key={i}
+                  onClick={() => openLightbox(i)}
+                  className="flex-shrink-0 relative cursor-zoom-in group rounded-2xl overflow-hidden shadow-md hover:shadow-xl border-2 border-transparent hover:border-[#d4a017] transition-all duration-300"
+                  style={{ width: CARD_W, height: 192 }}
+                >
+                  <img
+                    src={photo.src}
+                    alt={photo.caption}
+                    className="w-full h-full object-cover object-center transition-transform duration-500 group-hover:scale-110"
+                    loading="lazy"
+                    decoding="async"
+                  />
+                  {/* Hover overlay */}
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex flex-col justify-end p-3">
+                    <p className="text-white text-xs font-semibold leading-tight">{photo.caption}</p>
+                    <p className="text-white/60 text-[10px] mt-0.5">Click to expand</p>
+                  </div>
+                  {/* Expand icon */}
+                  <div className="absolute top-2 right-2 w-7 h-7 bg-black/40 backdrop-blur-sm rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                    <svg className="w-3.5 h-3.5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4" /></svg>
+                  </div>
                 </div>
-                <div className="absolute bottom-2 left-2 bg-black/50 text-white text-[10px] px-2 py-0.5 rounded-full">
-                  Photo {p.id}
-                </div>
-                <div className="absolute top-2 right-2 text-white/40 text-lg">🌳</div>
-              </div>
-            ))}
-            {/* "More photos coming" placeholder */}
-            <div className="flex-shrink-0 snap-start w-44 h-32 bg-gray-100 border-2 border-dashed border-gray-300 rounded-xl flex flex-col items-center justify-center text-gray-400">
-              <div className="text-2xl mb-1">📷</div>
-              <p className="text-xs font-semibold text-center px-2">More photos<br />coming soon</p>
+              ))}
+            </div>
+          </div>
+
+          {/* Photo counter & hint */}
+          <div className="flex items-center justify-between mt-4 px-2">
+            <p className="text-gray-400 text-xs">{TTNP_PHOTOS.length} photos · Hover to pause · Click to expand</p>
+            <div className="flex gap-1">
+              {TTNP_PHOTOS.map((_, i) => (
+                <div key={i} className="w-1.5 h-1.5 bg-[#d4a017]/40 rounded-full" />
+              ))}
             </div>
           </div>
         </div>
+      </div>
 
-        {/* Lightbox */}
-        {lightbox && (
-          <div className="fixed inset-0 bg-black/80 z-50 flex items-center justify-center p-4" onClick={() => setLightbox(null)}>
-            <div className="bg-white rounded-2xl p-8 text-center max-w-sm w-full shadow-2xl" onClick={(e) => e.stopPropagation()}>
-              <div className="text-5xl mb-3">🌳</div>
-              <h3 className="font-bold text-[#0e1f3d] text-lg mb-2">{lightbox}</h3>
-              <p className="text-gray-500 text-sm mb-5">Full event photos will be uploaded soon. Stay tuned!</p>
-              <button onClick={() => setLightbox(null)} className="bg-[#0e1f3d] text-white font-bold px-6 py-2.5 rounded-xl text-sm">Close</button>
+      {/* ── LIGHTBOX ── */}
+      {lightboxIdx !== null && (
+        <div
+          className="fixed inset-0 z-[100] flex items-center justify-center bg-black/92 backdrop-blur-sm"
+          onClick={closeLightbox}
+        >
+          {/* Close */}
+          <button
+            onClick={closeLightbox}
+            className="absolute top-4 right-4 w-10 h-10 rounded-full bg-white/10 hover:bg-white/20 border border-white/20 text-white flex items-center justify-center text-xl transition-colors z-10"
+            aria-label="Close"
+          >×</button>
+
+          {/* Counter */}
+          <div className="absolute top-4 left-1/2 -translate-x-1/2 bg-black/50 text-white text-xs font-bold px-4 py-1.5 rounded-full border border-white/10 z-10">
+            {lightboxIdx + 1} / {TTNP_PHOTOS.length}
+          </div>
+
+          {/* Prev */}
+          <button
+            onClick={(e) => { e.stopPropagation(); prevPhoto(); }}
+            className="absolute left-3 md:left-6 w-11 h-11 rounded-full bg-white/10 hover:bg-white/25 border border-white/20 text-white flex items-center justify-center transition-all z-10"
+            aria-label="Previous"
+          >
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" /></svg>
+          </button>
+
+          {/* Image */}
+          <div className="relative max-w-[95vw] max-h-[88vh] flex flex-col items-center" onClick={(e) => e.stopPropagation()}>
+            <img
+              key={lightboxIdx}
+              src={TTNP_PHOTOS[lightboxIdx].src}
+              alt={TTNP_PHOTOS[lightboxIdx].caption}
+              className="max-h-[80vh] max-w-[90vw] object-contain rounded-xl shadow-2xl"
+              style={{ animation: "fadeIn 0.25s ease-out" }}
+            />
+            <div className="mt-3 bg-white/10 backdrop-blur-sm border border-white/15 rounded-xl px-5 py-2.5 text-center">
+              <p className="text-white font-semibold text-sm">{TTNP_PHOTOS[lightboxIdx].caption}</p>
+              <p className="text-white/40 text-xs mt-0.5">TTNP · EJF 2025 Event</p>
             </div>
           </div>
-        )}
-      </div>
+
+          {/* Next */}
+          <button
+            onClick={(e) => { e.stopPropagation(); nextPhoto(); }}
+            className="absolute right-3 md:right-6 w-11 h-11 rounded-full bg-white/10 hover:bg-white/25 border border-white/20 text-white flex items-center justify-center transition-all z-10"
+            aria-label="Next"
+          >
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" /></svg>
+          </button>
+
+          <style>{`@keyframes fadeIn { from { opacity: 0; transform: scale(0.97); } to { opacity: 1; transform: scale(1); } }`}</style>
+        </div>
+      )}
     </section>
   );
 }
