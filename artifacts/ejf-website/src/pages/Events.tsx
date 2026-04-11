@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, useCallback } from "react";
+import React, { useState, useEffect, useRef, useCallback } from "react";
 import { adminQueries, DBEvent } from "@/lib/adminQueries";
 
 import ttnp1 from "@assets/latest1_18.50.56_551de1ff_1775865776636.jpg";
@@ -10,6 +10,24 @@ import ttnp6 from "@assets/latest6_1775865776635.jpg";
 import ttnp7 from "@assets/latest7_1775865776633.jpg";
 import ttnp8 from "@assets/latest8_1775865776633.jpg";
 import ttnp9 from "@assets/latest9_1775865776632.jpg";
+
+import imp1  from "@assets/WhatsApp_Image_2026-04-08_at_17.24.05_(1)_1775866427134.jpeg";
+import imp2  from "@assets/WhatsApp_Image_2026-04-08_at_17.23.54_1775866427135.jpeg";
+import imp3  from "@assets/WhatsApp_Image_2026-04-08_at_17.23.53_(2)_1775866427136.jpeg";
+import imp4  from "@assets/WhatsApp_Image_2026-04-08_at_17.23.53_1775866427137.jpeg";
+import imp5  from "@assets/WhatsApp_Image_2026-04-08_at_17.23.52_1775866427138.jpeg";
+import imp6  from "@assets/WhatsApp_Image_2026-04-08_at_17.23.47_1775866427139.jpeg";
+import imp7  from "@assets/WhatsApp_Image_2026-04-08_at_17.23.46_1775866427139.jpeg";
+import imp8  from "@assets/WhatsApp_Image_2026-04-08_at_17.21.24_1775866427140.jpeg";
+import imp9  from "@assets/WhatsApp_Image_2026-04-08_at_17.21.08_1775866427140.jpeg";
+import imp10 from "@assets/WhatsApp_Image_2026-04-08_at_17.20.48_1775866427141.jpeg";
+import imp11 from "@assets/WhatsApp_Image_2026-04-08_at_17.24.02_1775866427142.jpeg";
+import imp12 from "@assets/WhatsApp_Image_2026-04-08_at_17.24.03_1775866427142.jpeg";
+import imp13 from "@assets/WhatsApp_Image_2026-04-08_at_17.24.05_1775866427143.jpeg";
+import imp14 from "@assets/WhatsApp_Image_2026-04-08_at_17.24.09_(1)_1775866427143.jpeg";
+import imp15 from "@assets/WhatsApp_Image_2026-04-08_at_17.24.09_1775866427144.jpeg";
+import imp16 from "@assets/WhatsApp_Image_2026-04-08_at_17.24.11_1775866427144.jpeg";
+import imp17 from "@assets/WhatsApp_Image_2026-04-08_at_17.24.12_1775866427145.jpeg";
 
 /* ─────────────────────────────────────────────
    HELPERS
@@ -74,35 +92,35 @@ interface Event {
 
 const upcomingEvents: Event[] = [
   {
-    date: "March 15, 2025",
-    dateISO: "2025-03-15",
+    date: "Coming Soon — 2026",
+    dateISO: "2026-12-31",
     title: "Community Benefit-Sharing Forum — Taita Taveta",
     location: "Taita Taveta County",
-    time: "9:00 AM – 4:00 PM",
-    desc: "Join community representatives, county officials, and civil society organizations to discuss equitable benefit-sharing models for natural resource revenues.",
+    time: "To Be Announced",
+    desc: "Join community representatives, county officials, and civil society organizations to discuss equitable benefit-sharing models for natural resource revenues. Date and full details will be announced soon — subscribe to stay updated.",
     category: "Economic",
     color: "from-blue-900 to-blue-700",
     emoji: "⚖️",
     featured: true,
   },
   {
-    date: "April 5, 2025",
-    dateISO: "2025-04-05",
+    date: "Coming Soon — 2026",
+    dateISO: "2026-12-31",
     title: "Youth Climate Action Summit",
     location: "Mombasa County",
-    time: "8:00 AM – 5:00 PM",
-    desc: "Bringing together young climate champions from coastal counties to share experiences, build skills, and develop collective action plans for climate justice.",
+    time: "To Be Announced",
+    desc: "Bringing together young climate champions from coastal counties to share experiences, build skills, and develop collective action plans for climate justice. Details coming soon.",
     category: "Environmental",
     color: "from-emerald-900 to-emerald-700",
     emoji: "🌿",
   },
   {
-    date: "May 20-21, 2025",
-    dateISO: "2025-05-20",
+    date: "Coming Soon — 2026",
+    dateISO: "2026-12-31",
     title: "Digital Inclusion Workshop Series",
     location: "Kilifi & Kwale Counties",
-    time: "10:00 AM – 2:00 PM Daily",
-    desc: "Practical digital literacy training for community members, focusing on basic computer skills, internet usage, and online safety.",
+    time: "To Be Announced",
+    desc: "Practical digital literacy training for community members, focusing on basic computer skills, internet usage, and online safety. Full schedule and registration details to be announced.",
     category: "Digital",
     color: "from-violet-900 to-violet-700",
     emoji: "💻",
@@ -175,7 +193,6 @@ function CountUnit({ val, label }: { val: number; label: string }) {
    HERO
 ───────────────────────────────────────────── */
 function EventsHero() {
-  const count = useCountdown("2025-03-15");
   return (
     <section className="relative bg-gradient-to-br from-[#0e1f3d] via-[#1a3a6e] to-[#0e1f3d] overflow-hidden py-20 px-4">
       {/* Decorative circles */}
@@ -206,22 +223,23 @@ function EventsHero() {
             </div>
           </div>
 
-          {/* Countdown to next event */}
-          <div className="bg-white/5 border border-white/10 rounded-2xl p-6 backdrop-blur-sm">
-            <p className="text-[#d4a017] text-xs font-bold uppercase tracking-widest mb-1">Next Event Countdown</p>
-            <h3 className="text-white font-bold text-base mb-1">Community Benefit-Sharing Forum</h3>
-            <p className="text-white/50 text-xs mb-5">📍 Taita Taveta County · March 15, 2025</p>
-            <div className="flex items-center gap-3 mb-5">
-              <CountUnit val={count.days} label="Days" />
-              <span className="text-white/40 text-2xl font-light">:</span>
-              <CountUnit val={count.hours} label="Hours" />
-              <span className="text-white/40 text-2xl font-light">:</span>
-              <CountUnit val={count.minutes} label="Mins" />
-              <span className="text-white/40 text-2xl font-light">:</span>
-              <CountUnit val={count.seconds} label="Secs" />
+          {/* Coming Soon — 2026 Events */}
+          <div className="bg-white/5 border border-white/10 rounded-2xl p-6 backdrop-blur-sm flex flex-col items-center text-center">
+            <div className="w-16 h-16 rounded-2xl bg-[#d4a017]/20 border border-[#d4a017]/40 flex items-center justify-center text-3xl mb-4">
+              🗓️
+            </div>
+            <p className="text-[#d4a017] text-xs font-bold uppercase tracking-widest mb-2">2026 Events</p>
+            <h3 className="text-white font-bold text-lg mb-2">Upcoming Events Coming Soon</h3>
+            <p className="text-white/55 text-xs leading-relaxed mb-5">
+              Our 2026 events calendar is being finalised. Details for upcoming forums, summits, and community engagements will be announced shortly.
+            </p>
+            <div className="flex gap-2 mb-5">
+              {[...Array(5)].map((_, i) => (
+                <div key={i} className="w-2 h-2 bg-[#d4a017]/60 rounded-full animate-pulse" style={{ animationDelay: `${i * 0.2}s` }} />
+              ))}
             </div>
             <button onClick={soon} className="w-full bg-[#d4a017] hover:bg-[#b8891a] text-white font-bold text-sm py-2.5 rounded-xl transition-all hover:scale-105">
-              Register to Attend
+              Subscribe for Announcements
             </button>
           </div>
         </div>
@@ -405,9 +423,204 @@ function UpcomingEvents() {
 }
 
 /* ─────────────────────────────────────────────
-   LATEST EVENTS GALLERY — TTNP
+   SHARED PHOTO SCROLL GALLERY
 ───────────────────────────────────────────── */
-const TTNP_PHOTOS = [
+type GalleryPhoto = { src: string; caption: string };
+
+interface GalleryProps {
+  id: string;
+  photos: GalleryPhoto[];
+  banner: React.ReactNode;
+  eventLabel: string;
+  bgClass?: string;
+  speed?: number;
+}
+
+function PhotoScrollGallery({ id, photos, banner, eventLabel, bgClass = "bg-white", speed = 55 }: GalleryProps) {
+  const { ref, inView } = useInView();
+  const [lightboxIdx, setLightboxIdx] = useState<number | null>(null);
+  const [paused, setPaused] = useState(false);
+
+  const total = photos.length;
+  const open  = (idx: number) => setLightboxIdx(idx % total);
+  const close = () => setLightboxIdx(null);
+  const prev  = () => setLightboxIdx((i) => i === null ? 0 : (i - 1 + total) % total);
+  const next  = () => setLightboxIdx((i) => i === null ? 0 : (i + 1) % total);
+
+  useEffect(() => {
+    const handler = (e: KeyboardEvent) => {
+      if (lightboxIdx === null) return;
+      if (e.key === "Escape") close();
+      if (e.key === "ArrowLeft") prev();
+      if (e.key === "ArrowRight") next();
+    };
+    window.addEventListener("keydown", handler);
+    return () => window.removeEventListener("keydown", handler);
+  }, [lightboxIdx]);
+
+  const CARD_W  = 280;
+  const GAP     = 14;
+  const TOTAL_W = total * (CARD_W + GAP);
+  const doubled = [...photos, ...photos];
+  const animName = `scroll_${id}`;
+
+  return (
+    <section className={`${bgClass} py-14 px-4 overflow-hidden`}>
+      <style>{`
+        @keyframes ${animName} { 0% { transform: translateX(0); } 100% { transform: translateX(-${TOTAL_W}px); } }
+        .strip-${id} { animation: ${animName} ${speed}s linear infinite; }
+        .strip-${id}.paused { animation-play-state: paused; }
+        @keyframes lbFade { from { opacity:0; transform:scale(0.97); } to { opacity:1; transform:scale(1); } }
+      `}</style>
+
+      <div className="max-w-6xl mx-auto">
+        <div ref={ref} className={`mb-6 transition-all duration-700 ${inView ? "opacity-100 translate-y-0" : "opacity-0 translate-y-6"}`}>
+          {banner}
+        </div>
+
+        {/* Strip */}
+        <div className={`transition-all duration-700 delay-200 ${inView ? "opacity-100 translate-y-0" : "opacity-0 translate-y-6"}`}>
+          <div
+            className="relative overflow-hidden"
+            onMouseEnter={() => setPaused(true)}
+            onMouseLeave={() => setPaused(false)}
+            onTouchStart={() => setPaused(true)}
+            onTouchEnd={() => setPaused(false)}
+          >
+            <div className="absolute left-0 top-0 bottom-0 w-14 bg-gradient-to-r from-white/80 to-transparent z-10 pointer-events-none" style={{ background: `linear-gradient(to right, var(--tw-gradient-from, white), transparent)` }} />
+            <div className="absolute right-0 top-0 bottom-0 w-14 bg-gradient-to-l from-white/80 to-transparent z-10 pointer-events-none" />
+
+            <div
+              className={`strip-${id} flex${paused ? " paused" : ""}`}
+              style={{ width: `${TOTAL_W * 2}px`, gap: GAP }}
+            >
+              {doubled.map((photo, i) => (
+                <div
+                  key={i}
+                  onClick={() => open(i)}
+                  className="flex-shrink-0 relative cursor-zoom-in group rounded-2xl overflow-hidden shadow-md hover:shadow-xl border-2 border-transparent hover:border-[#d4a017] transition-all duration-300"
+                  style={{ width: CARD_W, height: 210 }}
+                >
+                  <img
+                    src={photo.src}
+                    alt={photo.caption}
+                    className="w-full h-full object-cover object-center transition-transform duration-500 group-hover:scale-110"
+                    loading="lazy"
+                    decoding="async"
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex flex-col justify-end p-3">
+                    <p className="text-white text-xs font-semibold leading-tight">{photo.caption}</p>
+                    <p className="text-white/55 text-[10px] mt-0.5">Click to expand</p>
+                  </div>
+                  <div className="absolute top-2 right-2 w-7 h-7 bg-black/40 backdrop-blur-sm rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                    <svg className="w-3.5 h-3.5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4" /></svg>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          <div className="flex items-center justify-between mt-4 px-2">
+            <p className="text-gray-400 text-xs">{total} photos · Hover to pause · Click to expand</p>
+            <div className="flex gap-1">
+              {photos.map((_, i) => <div key={i} className="w-1.5 h-1.5 bg-[#d4a017]/40 rounded-full" />)}
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* LIGHTBOX */}
+      {lightboxIdx !== null && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/92 backdrop-blur-sm" onClick={close}>
+          <button onClick={close} className="absolute top-4 right-4 w-10 h-10 rounded-full bg-white/10 hover:bg-white/20 border border-white/20 text-white flex items-center justify-center text-xl transition-colors z-10" aria-label="Close">×</button>
+          <div className="absolute top-4 left-1/2 -translate-x-1/2 bg-black/50 text-white text-xs font-bold px-4 py-1.5 rounded-full border border-white/10 z-10">
+            {lightboxIdx + 1} / {total}
+          </div>
+          <button onClick={(e) => { e.stopPropagation(); prev(); }} className="absolute left-3 md:left-6 w-11 h-11 rounded-full bg-white/10 hover:bg-white/25 border border-white/20 text-white flex items-center justify-center transition-all z-10" aria-label="Previous">
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" /></svg>
+          </button>
+          <div className="relative max-w-[95vw] max-h-[88vh] flex flex-col items-center" onClick={(e) => e.stopPropagation()}>
+            <img
+              key={lightboxIdx}
+              src={photos[lightboxIdx].src}
+              alt={photos[lightboxIdx].caption}
+              className="max-h-[80vh] max-w-[90vw] object-contain rounded-xl shadow-2xl"
+              style={{ animation: "lbFade 0.25s ease-out" }}
+            />
+            <div className="mt-3 bg-white/10 backdrop-blur-sm border border-white/15 rounded-xl px-5 py-2.5 text-center">
+              <p className="text-white font-semibold text-sm">{photos[lightboxIdx].caption}</p>
+              <p className="text-white/40 text-xs mt-0.5">{eventLabel}</p>
+            </div>
+          </div>
+          <button onClick={(e) => { e.stopPropagation(); next(); }} className="absolute right-3 md:right-6 w-11 h-11 rounded-full bg-white/10 hover:bg-white/25 border border-white/20 text-white flex items-center justify-center transition-all z-10" aria-label="Next">
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" /></svg>
+          </button>
+        </div>
+      )}
+    </section>
+  );
+}
+
+/* ─────────────────────────────────────────────
+   IMPACT360 GALLERY — 2026 (LATEST)
+───────────────────────────────────────────── */
+const IMPACT360_PHOTOS: GalleryPhoto[] = [
+  { src: imp3,  caption: "IMPACT360 participants group photo" },
+  { src: imp4,  caption: "Fellows attending the Budget Power Lab session" },
+  { src: imp5,  caption: "Facilitator presenting to youth fellows" },
+  { src: imp12, caption: "Speaker addressing Budget Power Lab participants" },
+  { src: imp17, caption: "Presenter at the IMPACT360 podium" },
+  { src: imp11, caption: "Interactive group session — IMPACT360" },
+  { src: imp2,  caption: "Expert speaker engaging youth fellows" },
+  { src: imp16, caption: "Facilitator leading a session at The Avid Hotel" },
+  { src: imp15, caption: "Speaker presenting at the Budget Power Lab" },
+  { src: imp6,  caption: "EJF team in solidarity at the IMPACT360 banner" },
+  { src: imp1,  caption: "Participants posing at the IMPACT360 banner" },
+  { src: imp13, caption: "Delegates at the Budget Power Lab launch" },
+  { src: imp8,  caption: "Youth fellows at the IMPACT360 Budget Power Lab" },
+  { src: imp9,  caption: "IMPACT360 participants at the event venue" },
+  { src: imp14, caption: "EJF leadership and ActionAid partners" },
+  { src: imp7,  caption: "Celebration — cake cutting at IMPACT360" },
+  { src: imp10, caption: "Fellows sharing a meal at the IMPACT360 launch" },
+];
+
+function Impact360Gallery() {
+  return (
+    <PhotoScrollGallery
+      id="impact360"
+      photos={IMPACT360_PHOTOS}
+      eventLabel="IMPACT360 Budget Power Lab · EJF & ActionAid Kenya · April 2026"
+      bgClass="bg-white"
+      speed={55}
+      banner={
+        <div>
+          <div className="inline-flex items-center gap-2 bg-[#d4a017]/10 border border-[#d4a017]/30 text-[#d4a017] text-[10px] font-bold px-3 py-1 rounded-full mb-4 uppercase tracking-widest">
+            ⭐ Latest Event — April 2026
+          </div>
+          <h2 className="text-2xl md:text-3xl font-bold text-[#0e1f3d] mb-1">IMPACT360 — Budget Power Lab Launch</h2>
+          <p className="text-gray-500 text-sm mb-4">EJF partnered with ActionAid Kenya to launch the IMPACT360 Budget Power Lab — empowering youth as Legislative Budget Fellows to claim Budget Power to the Youth.</p>
+          <div className="w-12 h-0.5 bg-[#d4a017] mb-5" />
+          <div className="bg-gradient-to-r from-[#0e1f3d] to-[#1a3a6e] rounded-2xl p-5 text-center">
+            <p className="text-[#d4a017] font-black text-lg md:text-xl uppercase tracking-wide leading-snug">
+              IMPACT360 Budget Power Lab<br className="hidden sm:block" /> — Youth Legislative Budget Fellows
+            </p>
+            <p className="text-white/50 text-xs mt-2 uppercase tracking-widest">EJF × ActionAid Kenya · April 8, 2026 · The Avid Hotel</p>
+            <div className="flex justify-center gap-2 mt-3">
+              {[...Array(5)].map((_, i) => (
+                <div key={i} className="w-2 h-2 bg-[#d4a017] rounded-full animate-bounce" style={{ animationDelay: `${i * 0.12}s` }} />
+              ))}
+            </div>
+          </div>
+        </div>
+      }
+    />
+  );
+}
+
+/* ─────────────────────────────────────────────
+   TTNP GALLERY — 2025
+───────────────────────────────────────────── */
+const TTNP_PHOTOS: GalleryPhoto[] = [
   { src: ttnp1, caption: "EJF members united at TTNP" },
   { src: ttnp2, caption: "Tree planting in action" },
   { src: ttnp3, caption: "EJF team at Taita Taveta National Park" },
@@ -420,180 +633,32 @@ const TTNP_PHOTOS = [
 ];
 
 function LatestEventsGallery() {
-  const { ref, inView } = useInView();
-  const [lightboxIdx, setLightboxIdx] = useState<number | null>(null);
-  const [paused, setPaused] = useState(false);
-  const stripRef = useRef<HTMLDivElement>(null);
-
-  const openLightbox = (idx: number) => setLightboxIdx(idx % TTNP_PHOTOS.length);
-  const closeLightbox = () => setLightboxIdx(null);
-  const prevPhoto = () => setLightboxIdx((i) => i === null ? 0 : (i - 1 + TTNP_PHOTOS.length) % TTNP_PHOTOS.length);
-  const nextPhoto = () => setLightboxIdx((i) => i === null ? 0 : (i + 1) % TTNP_PHOTOS.length);
-
-  useEffect(() => {
-    const onKey = (e: KeyboardEvent) => {
-      if (lightboxIdx === null) return;
-      if (e.key === "Escape") closeLightbox();
-      if (e.key === "ArrowLeft") prevPhoto();
-      if (e.key === "ArrowRight") nextPhoto();
-    };
-    window.addEventListener("keydown", onKey);
-    return () => window.removeEventListener("keydown", onKey);
-  }, [lightboxIdx]);
-
-  const doubled = [...TTNP_PHOTOS, ...TTNP_PHOTOS];
-  const CARD_W = 272;
-  const GAP = 12;
-  const TOTAL_W = TTNP_PHOTOS.length * (CARD_W + GAP);
-
   return (
-    <section className="bg-white py-14 px-4 overflow-hidden">
-      <style>{`
-        @keyframes ttnpScroll {
-          0%   { transform: translateX(0); }
-          100% { transform: translateX(-${TOTAL_W}px); }
-        }
-        .ttnp-strip {
-          animation: ttnpScroll 30s linear infinite;
-        }
-        .ttnp-strip.paused {
-          animation-play-state: paused;
-        }
-      `}</style>
-
-      <div className="max-w-6xl mx-auto">
-        <div ref={ref} className={`mb-6 transition-all duration-700 ${inView ? "opacity-100 translate-y-0" : "opacity-0 translate-y-6"}`}>
-          <h2 className="text-2xl md:text-3xl font-bold text-[#0e1f3d] mb-1">Latest Events</h2>
-          <p className="text-gray-500 text-sm mb-3">Photos from our most recent events. Click any image to view full size.</p>
-          <div className="w-12 h-0.5 bg-[#d4a017]" />
-        </div>
-
-        {/* TTNP Announcement Banner */}
-        <div className={`bg-gradient-to-r from-[#0e1f3d] to-[#1a3a6e] rounded-2xl p-6 mb-8 text-center transition-all duration-700 delay-100 ${inView ? "opacity-100 scale-100" : "opacity-0 scale-95"}`}>
-          <p className="text-[#d4a017] font-black text-xl md:text-2xl uppercase tracking-wide leading-relaxed">
-            This is Our Latest Event Which Happened<br className="hidden sm:block" /> at TTNP — Gallery Below
-          </p>
-          <div className="flex justify-center gap-2 mt-4">
-            {[...Array(5)].map((_, i) => (
-              <div key={i} className="w-2 h-2 bg-[#d4a017] rounded-full animate-bounce" style={{ animationDelay: `${i * 0.12}s` }} />
-            ))}
-          </div>
-          <p className="text-white/40 text-xs mt-3 uppercase tracking-widest">Taita Taveta National Park · 2025</p>
-        </div>
-
-        {/* Auto-scrolling strip */}
-        <div className={`transition-all duration-700 delay-200 ${inView ? "opacity-100 translate-y-0" : "opacity-0 translate-y-6"}`}>
-          <div
-            className="relative overflow-hidden"
-            onMouseEnter={() => setPaused(true)}
-            onMouseLeave={() => setPaused(false)}
-            onTouchStart={() => setPaused(true)}
-            onTouchEnd={() => setPaused(false)}
-          >
-            {/* Left/right fade edges */}
-            <div className="absolute left-0 top-0 bottom-0 w-12 bg-gradient-to-r from-white to-transparent z-10 pointer-events-none" />
-            <div className="absolute right-0 top-0 bottom-0 w-12 bg-gradient-to-l from-white to-transparent z-10 pointer-events-none" />
-
-            <div
-              ref={stripRef}
-              className={`ttnp-strip flex gap-3${paused ? " paused" : ""}`}
-              style={{ width: `${TOTAL_W * 2}px` }}
-            >
-              {doubled.map((photo, i) => (
-                <div
-                  key={i}
-                  onClick={() => openLightbox(i)}
-                  className="flex-shrink-0 relative cursor-zoom-in group rounded-2xl overflow-hidden shadow-md hover:shadow-xl border-2 border-transparent hover:border-[#d4a017] transition-all duration-300"
-                  style={{ width: CARD_W, height: 192 }}
-                >
-                  <img
-                    src={photo.src}
-                    alt={photo.caption}
-                    className="w-full h-full object-cover object-center transition-transform duration-500 group-hover:scale-110"
-                    loading="lazy"
-                    decoding="async"
-                  />
-                  {/* Hover overlay */}
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex flex-col justify-end p-3">
-                    <p className="text-white text-xs font-semibold leading-tight">{photo.caption}</p>
-                    <p className="text-white/60 text-[10px] mt-0.5">Click to expand</p>
-                  </div>
-                  {/* Expand icon */}
-                  <div className="absolute top-2 right-2 w-7 h-7 bg-black/40 backdrop-blur-sm rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
-                    <svg className="w-3.5 h-3.5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4" /></svg>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-
-          {/* Photo counter & hint */}
-          <div className="flex items-center justify-between mt-4 px-2">
-            <p className="text-gray-400 text-xs">{TTNP_PHOTOS.length} photos · Hover to pause · Click to expand</p>
-            <div className="flex gap-1">
-              {TTNP_PHOTOS.map((_, i) => (
-                <div key={i} className="w-1.5 h-1.5 bg-[#d4a017]/40 rounded-full" />
+    <PhotoScrollGallery
+      id="ttnp"
+      photos={TTNP_PHOTOS}
+      eventLabel="Taita Taveta National Park · EJF 2025 Event"
+      bgClass="bg-gray-50"
+      speed={55}
+      banner={
+        <div>
+          <h2 className="text-2xl md:text-3xl font-bold text-[#0e1f3d] mb-1">TTNP Community Event — 2025</h2>
+          <p className="text-gray-500 text-sm mb-4">Photos from our 2025 tree-planting and community action event at Taita Taveta National Park. Click any image to view full size.</p>
+          <div className="w-12 h-0.5 bg-[#d4a017] mb-5" />
+          <div className="bg-gradient-to-r from-[#0e1f3d] to-[#1a3a6e] rounded-2xl p-5 text-center">
+            <p className="text-[#d4a017] font-black text-lg md:text-xl uppercase tracking-wide leading-snug">
+              EJF at Taita Taveta National Park<br className="hidden sm:block" /> — Community Action &amp; Tree Planting
+            </p>
+            <p className="text-white/50 text-xs mt-2 uppercase tracking-widest">Taita Taveta National Park · 2025</p>
+            <div className="flex justify-center gap-2 mt-3">
+              {[...Array(5)].map((_, i) => (
+                <div key={i} className="w-2 h-2 bg-[#d4a017] rounded-full animate-bounce" style={{ animationDelay: `${i * 0.12}s` }} />
               ))}
             </div>
           </div>
         </div>
-      </div>
-
-      {/* ── LIGHTBOX ── */}
-      {lightboxIdx !== null && (
-        <div
-          className="fixed inset-0 z-[100] flex items-center justify-center bg-black/92 backdrop-blur-sm"
-          onClick={closeLightbox}
-        >
-          {/* Close */}
-          <button
-            onClick={closeLightbox}
-            className="absolute top-4 right-4 w-10 h-10 rounded-full bg-white/10 hover:bg-white/20 border border-white/20 text-white flex items-center justify-center text-xl transition-colors z-10"
-            aria-label="Close"
-          >×</button>
-
-          {/* Counter */}
-          <div className="absolute top-4 left-1/2 -translate-x-1/2 bg-black/50 text-white text-xs font-bold px-4 py-1.5 rounded-full border border-white/10 z-10">
-            {lightboxIdx + 1} / {TTNP_PHOTOS.length}
-          </div>
-
-          {/* Prev */}
-          <button
-            onClick={(e) => { e.stopPropagation(); prevPhoto(); }}
-            className="absolute left-3 md:left-6 w-11 h-11 rounded-full bg-white/10 hover:bg-white/25 border border-white/20 text-white flex items-center justify-center transition-all z-10"
-            aria-label="Previous"
-          >
-            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" /></svg>
-          </button>
-
-          {/* Image */}
-          <div className="relative max-w-[95vw] max-h-[88vh] flex flex-col items-center" onClick={(e) => e.stopPropagation()}>
-            <img
-              key={lightboxIdx}
-              src={TTNP_PHOTOS[lightboxIdx].src}
-              alt={TTNP_PHOTOS[lightboxIdx].caption}
-              className="max-h-[80vh] max-w-[90vw] object-contain rounded-xl shadow-2xl"
-              style={{ animation: "fadeIn 0.25s ease-out" }}
-            />
-            <div className="mt-3 bg-white/10 backdrop-blur-sm border border-white/15 rounded-xl px-5 py-2.5 text-center">
-              <p className="text-white font-semibold text-sm">{TTNP_PHOTOS[lightboxIdx].caption}</p>
-              <p className="text-white/40 text-xs mt-0.5">TTNP · EJF 2025 Event</p>
-            </div>
-          </div>
-
-          {/* Next */}
-          <button
-            onClick={(e) => { e.stopPropagation(); nextPhoto(); }}
-            className="absolute right-3 md:right-6 w-11 h-11 rounded-full bg-white/10 hover:bg-white/25 border border-white/20 text-white flex items-center justify-center transition-all z-10"
-            aria-label="Next"
-          >
-            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" /></svg>
-          </button>
-
-          <style>{`@keyframes fadeIn { from { opacity: 0; transform: scale(0.97); } to { opacity: 1; transform: scale(1); } }`}</style>
-        </div>
-      )}
-    </section>
+      }
+    />
   );
 }
 
@@ -784,8 +849,9 @@ export default function Events() {
   return (
     <>
       <EventsHero />
-      <UpcomingEvents />
+      <Impact360Gallery />
       <LatestEventsGallery />
+      <UpcomingEvents />
       <PastEventsGallery />
       <RecentHighlights />
       <HostEvent />
